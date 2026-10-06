@@ -75,9 +75,14 @@
 - dbx：= Rust workspace 分层（core→drivers→sql→types 单向依赖），连接类型插件化 `plugins/connection-types`（manifest 单一事实来源，build.rs 生成前端 TS html）；服务端 dbx-web 端口 4224；docker 单镜像多阶段构建
 
 ## 当前状态
-- 2026-10-06：仓库初始化（git init + origin 关联，首次提交 e428266 已推送），架构草案已落 `docs/architecture.md`（v0.6）
-- 已确认需求范围见上（含两批决策拍板：完整内置引擎 / API Key 完整开放 / 首批 6 库 / 任务管理完整档 / master 同节点 /
-  普通用户仅管理员创建 / API Key 简单生命周期），**待用户补充具体需求后逐模块落地**（M0 起步）
+- 2026-10-06：**M0 已完成并通过全链路验收**（commit af20669 / 首次 M0 提交见 e428266 后追加）
+  - Rust workspace 7 crate 骨架；`dbloom-storage`（MySQL+迁移+DAO+TenantScope）、`dbloom-iam`
+    （argon2/JWT/refresh/登录锁定/用户CRUD/API Key/审计）、`dbloom-server`（axum 路由 + 认证中间件 + OpenAPI）
+  - `cargo build`+`cargo test` 绿（11 个逻辑单测）；真实 MySQL（WSL Docker）迁移+种子+curl 全链路
+    （login/refresh/create-user/reset-password/issue-key/APIKey 鉴权/越权 403/OpenAPI）全部通过
+  - 已知坑：axum 0.7 路由参数用 `:id`；SwaggerUI 构建期联网已弃用；详见 knowledge「dbloom M0 实施踩坑」
+  - 下一步：M1（连接管理 + 客户端第一块，连接类型 manifest 落 types crate）
+- 2026-10-06：仓库初始化（首次提交 e428266 已推送），架构草案 `docs/architecture.md`，设计 `docs/design/00-06`（v1.1，26 项决策全拍板）
 
 ## 注意
 - 落代码前先读 `docs/architecture.md`（技术栈与两批决策均已确认，见上文「需求与架构决策」）

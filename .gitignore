@@ -56,6 +56,9 @@ dependency-reduced-pom.xml
 secrets/
 local.properties
 
+# ===== weai 智能体运行时状态（本地自留，不入库） =====
+.weai/
+
 # ===== 测试与临时产物 =====
 coverage/
 .nyc_output/
