@@ -63,15 +63,16 @@ dbloom/
 - **多租户过滤 + 权限判定**：中间件组件 `AuthCtx{user, role, key_created_by?}`；每个 handler 用它做资源归属判定。
 - **审计写入**：`audit(actor, action, resource, detail)`（D21）。
 
-### 2.5 `dbloom-connector`（客户端能力，D17 统一转发执行）
-- **连接池管理**：按 `connection id` 池化（r2d2 通用接口：JDBC 桥 + 原生驱动桥——mysql/postgres/sqlserver 走驱动，mongodb/redis/elasticsearch 走原生 client）。
-- **驱动适配层**：统一 `DbDriver` trait（`connect/test/query/schema/rows/update/ddl…`），首批 6 库实现（D7）。
-- **SQL 执行**：整批/流式、超时（120s D18）、行数上限（5000 D18）、分页、取消。
-- **元数据**：databases/tables/columns/DDL 生成、主键/索引/样例行。
-- **数据浏览与编辑**：行翻页、`INSERT/UPDATE/DELETE`（走写保护，D6）、批量导入（CSV/XLSX/JSON）。
-- **导出**：结果/表 → CSV / XLSX / JSON / SQL（D23），后台任务落共享卷 `files/download/`。
-- **写保护（safety，D6）**：危险语句识别（`UPDATE/DELETE/DDL/TRUNCATE…` 无 where 预警）；连接 `is_production` + `read_only_lock` 校验；二次确认标记检查。
-- **连接测试**复用同一驱动。
+### 2.5 `dbloom-connector`（客户端能力，D17 统一转发执行）—— **薄包装，复用 dbx（D27）**
+> **原则（D27）：不重写已验证代码。** 查询 / 元数据 / 行编辑 / 写保护 / 导出 / 连接测试全部**直接依赖 dbx 开源 crate 族**
+> （`G:\work\dbx`，Apache-2.0），dbloom-connector 只做 **DTO ↔ `dbx::models::connection::ConnectionConfig` 薄映射**。
+
+- **层叠**：
+  1. `dbx` 聚合 crate 或 `dbx-driver-{mysql,postgres,sqlserver,mongodb,redis,elasticsearch}`（D7 六库）+ `dbx-sql-*` / `dbx-formats` / `dbx-core::{safety, data, query}` —— 全部已场景验证，按需 path 依赖引入。
+  2. dbloom-connector：`ConnectionDto(加密解密后) → dbx ConnectionConfig`（host/port/username/password/database/db_type/ssl/timeout 字段同构，见 D27 对齐清单）；暴露 `dbloom::Driver` 薄 trait（`test/query/meta/rows/update/export`）供 server 路由调用。
+- **连接类型清单**：消费 dbx `database_manifest`（构建期生成的 manifest JSON），不再自建 manifest——dbloom 只在其上叠加 SeaTunnel 同步模板片段（`st_source/st_sink`，HOCON）。
+- **写保护（safety，D6）**：复用 dbx `dbx-core::safety`（危险语句识别 / 生产只读锁 / 二次确认），dbloom 叠加「普通用户无 DDL」与任务无关约束。
+- **导出（D23）**：复用 `dbx-core::data::table_export / query_result_export`、`dbx-formats`，dbloom 只负责落共享卷 `files/download/` 与下载白名单。
 
 ### 2.6 `dbloom-sync`（同步能力）
 - **HOCON 生成器**：连接 manifest 模板片段 + 用户同步参数（表映射/过滤/并行度/checkpoint/同步类型 D4）→ 渲染成 `<env, source, sink(s), transform(s)>` 完整 HOCON；含 `jobName/idempotency` 等。

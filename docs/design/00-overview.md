@@ -3,6 +3,8 @@
 > 本文档是 dbloom 的**目标态完整设计**（决策已由用户逐项拍板，见 §2 决策清单）。
 > v1.1（2026-10-06）：**D10 变更** —— 元数据由 SQLite 改为**外部关系数据库（MySQL/PostgreSQL，经 ORM 层适配）**；
 > 新增 **D26（自定义 jar 权限）**：普通用户可各自上传自己的 jar（按用户隔离）。
+> v1.2（2026-10-06）：**D2 修正** —— 引擎由「源码裁剪纳入」改为「**官方发布包原样引入**、零改写」；
+> 新增 **D27（客户端引擎复用 dbx）** —— 不再自研/重写已验证的数据库客户端能力，直接依赖 dbx crate。
 > 配套文档：`01-data-model.md`（数据模型 MySQL/PG ORM）、`02-api.md`（REST/OpenAPI）、
 > `03-modules.md`（代码结构）、`04-security.md`（安全）、`05-deploy.md`（部署）、`06-milestones.md`（里程碑）。
 > 背景与历史决策记录见 `../architecture.md`（v0.6 草案，作为来源依据）。
@@ -23,7 +25,7 @@
 | # | 决策点 | 结论 |
 | --- | --- | --- |
 | D1 | 总体架构 | 沿用 SeaTunnel **master + worker** 模式；部署形态 docker / docker compose / k8s；**不部署 reload 服务** |
-| D2 | 引擎融合 | **完整内置引擎**：SeaTunnel 源码纳入本仓 `engine/`（**裁剪精简**），统一镜像、控制面与引擎同镜像双进程；不依赖官方 `apache/seatunnel` 镜像 |
+| D2 | 引擎融合 | **原样引入、不改写**：以 SeaTunnel **官方发布包**（bin/config/connectors 原样）作为引擎运行时，统一镜像内 COPY 官方发布包 + 控制面二进制双进程；`dbloom-sync` 只做 **HOCON 生成 + REST(8080) 调度**（submit/status/cancel），**零引擎源码改动、随官方升级**；不依赖 `apache/seatunnel` 官方镜像（自建统一镜像） |
 | D3 | 控制面技术栈 | **Rust**（dbloom-server）+ React(Vite)+antd 前端 + SeaTunnel(Java) 执行面 |
 | D4 | 同步任务类型 | 批量 / 增量 / CDC —— **全部透传 SeaTunnel 原生能力**，dbloom 只做编排、调度与 HOCON 生成，不改自研断点 |
 | D5 | 任务管理深度 | 完整档：调度(内置 cron)、增量断点(透传 ST)、失败重试、任务 DAG、告警、血缘/审计 |
@@ -48,6 +50,7 @@
 | D24 | 界面语言 | 中文优先，预留 i18n |
 | D25 | UI 组件库 | **Ant Design（antd）** |
 | D26 | 自定义 jar 权限 | **普通用户可各自上传自己的自定义 jar**（按用户数据隔离，D8），供 SeaTunnel 自定义 source/sink/transform 使用；仅本人任务可引用本人 jar；管理员可审计、可停用用户 |
+| D27 | 客户端引擎复用 | **不重写已验证客户端能力**：查询/元数据/行编辑/写保护(D6)/导出 直接依赖 **dbx 开源 Rust crate 族**（G:\work\dbx，Apache-2.0，mysql/postgres/sqlserver/mongodb/redis/elasticsearch 等驱动 + `dbx-sql-*`/`dbx-formats` 已场景验证）；`dbloom-connector` 只做 **dbloom DTO ↔ `dbx ConnectionConfig` 薄映射**的薄包装；连接类型清单对齐 dbx `database_manifest`（不另起炉灶） |
 
 ---
 
