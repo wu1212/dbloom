@@ -45,7 +45,7 @@ impl ApiKeyDao {
         valid_until: Option<i64>,
         now_ms: i64,
     ) -> Result<ApiKeyRow, AppError> {
-        sqlx::query_as::<_, ApiKeyRow>(
+        let res = sqlx::query(
             r#"
             INSERT INTO api_keys
               (user_id, created_by, name, key_hash, prefix, status,
@@ -62,9 +62,11 @@ impl ApiKeyDao {
         .bind(valid_until)
         .bind(now_ms)
         .bind(now_ms)
-        .fetch_one(&self.pool)
+        .execute(&self.pool)
         .await
-        .map_err(|e| e.storage_err())
+        .map_err(|e| e.storage_err())?;
+        let id = res.last_insert_id() as i64;
+        self.get_by_id(id).await
     }
 
     pub async fn get_by_id(&self, id: i64) -> Result<ApiKeyRow, AppError> {

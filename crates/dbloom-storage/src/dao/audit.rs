@@ -41,8 +41,8 @@ impl AuditDao {
         detail_json: Option<Value>,
         ip: Option<&str>,
         created_at: i64,
-    ) -> Result<AuditRow, AppError> {
-        sqlx::query_as::<_, AuditRow>(
+    ) -> Result<(), AppError> {
+        sqlx::query(
             r#"
             INSERT INTO audit_logs
               (actor_user_id, actor_type, action, resource_type, resource_id, detail_json, ip, created_at)
@@ -57,9 +57,10 @@ impl AuditDao {
         .bind(detail_json)
         .bind(ip)
         .bind(created_at)
-        .fetch_one(&self.pool)
+        .execute(&self.pool)
         .await
-        .map_err(|e| e.storage_err())
+        .map_err(|e| e.storage_err())?;
+        Ok(())
     }
 
     /// 按 actor 与动作分页查询（admin 域，M0 提供雏形）。

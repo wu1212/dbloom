@@ -5,7 +5,6 @@
 //! - `DBLOOM_JWT_SECRET` JWT 签名密钥（生产必须注入；缺省为 dev 值并告警）
 //! - `DBLOOM_HTTP_PORT`  监听端口（默认 8080）
 
-use axum::Router;
 use dbloom_common::time::now_ms;
 use dbloom_iam::{
     Config,

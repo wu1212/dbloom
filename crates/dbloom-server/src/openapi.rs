@@ -47,3 +47,11 @@ pub struct ApiDoc;
 pub fn openapi_json() -> String {
     ApiDoc::openapi().to_pretty_json().unwrap_or_else(|_| "{}".into())
 }
+
+/// GET /api/v1/openapi.json handler（自产契约，无需构建期外部下载）。
+pub async fn openapi_json_handler() -> axum::Json<serde_json::Value> {
+    let text = openapi_json();
+    let parsed = serde_json::from_str::<serde_json::Value>(&text)
+        .unwrap_or_else(|_| serde_json::json!({"error": "openapi 渲染失败"}));
+    axum::Json(parsed)
+}

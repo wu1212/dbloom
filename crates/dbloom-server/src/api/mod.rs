@@ -15,10 +15,7 @@ use axum::{
 };
 use std::sync::Arc;
 
-use utoipa::OpenApi;
-use utoipa_swagger_ui::SwaggerUi;
-
-use crate::{openapi::ApiDoc, state::AppState};
+use crate::{openapi, state::AppState};
 
 /// 构建应用 Router。
 pub fn build_router(state: Arc<AppState>) -> Router {
@@ -29,16 +26,16 @@ pub fn build_router(state: Arc<AppState>) -> Router {
         .route("/auth/change-password", post(auth::change_password))
         .route("/users", get(users::list).post(users::create))
         .route(
-            "/users/{id}",
+            "/users/:id",
             get(users::detail).put(users::update).delete(users::delete),
         )
-        .route("/users/{id}/reset-password", post(users::reset_password))
+        .route("/users/:id/reset-password", post(users::reset_password))
         .route(
-            "/users/{id}/api-keys",
+            "/users/:id/api-keys",
             get(apikeys::list_for_user).post(apikeys::create),
         )
         .route(
-            "/api-keys/{key_id}",
+            "/api-keys/:key_id",
             axum::routing::put(apikeys::update).delete(apikeys::revoke),
         )
         .layer(middleware::from_fn_with_state(
@@ -55,12 +52,25 @@ pub fn build_router(state: Arc<AppState>) -> Router {
     let api = public.merge(protected);
 
     Router::new()
-        .merge(
-            SwaggerUi::new("/api/v1/docs").url("/api/v1/openapi.json", ApiDoc::openapi()),
-        )
+        // OpenAPI 契约（自产 openapi.json；Swagger UI 由客户端经 CDN 加载，后续迭代接入）
+        .route("/api/v1/openapi.json", get(openapi::openapi_json_handler))
+        .route("/api/v1/docs", get(docs_page))
         .nest("/api/v1", api)
         .fallback(not_found)
         .with_state(state)
+}
+
+/// GET /api/v1/docs —— 简化文档页（展示契约地址；正式 Swagger UI 后续接入）。
+async fn docs_page() -> axum::response::Html<&'static str> {
+    axum::response::Html(
+        r#"<!doctype html><html lang="zh"><meta charset="utf-8">
+<title>dbloom OpenAPI</title>
+<body style="font-family:sans-serif;padding:2rem">
+<h1>dbloom OpenAPI</h1>
+<p>契约文档：<a href="/api/v1/openapi.json">/api/v1/openapi.json</a></p>
+<p>完整 Swagger UI 将在后续迭代接入（CDN 方式，避免构建期外部下载）。</p>
+</body></html>"#,
+    )
 }
 
 async fn not_found() -> (axum::http::StatusCode, axum::Json<serde_json::Value>) {
@@ -68,7 +78,7 @@ async fn not_found() -> (axum::http::StatusCode, axum::Json<serde_json::Value>) 
         axum::http::StatusCode::NOT_FOUND,
         axum::Json(serde_json::json!({
             "code": 40400,
-            "message": "资源不存在",
+            "message": "接口不存在（未匹配路由）",
             "trace_id": "",
         })),
     )

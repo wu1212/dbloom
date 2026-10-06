@@ -27,14 +27,15 @@ impl SessionDao {
         Self { pool }
     }
 
+    /// 建会话，返回会话 id（refresh token 只存哈希）。
     pub async fn create(
         &self,
         user_id: i64,
         refresh_hash: &str,
         expires_at: i64,
         created_at: i64,
-    ) -> Result<SessionRow, AppError> {
-        sqlx::query_as::<_, SessionRow>(
+    ) -> Result<i64, AppError> {
+        let res = sqlx::query(
             r#"
             INSERT INTO sessions (user_id, refresh_hash, expires_at, revoke_reason, created_at, last_used_at)
             VALUES (?, ?, ?, NULL, ?, NULL)
@@ -44,9 +45,10 @@ impl SessionDao {
         .bind(refresh_hash)
         .bind(expires_at)
         .bind(created_at)
-        .fetch_one(&self.pool)
+        .execute(&self.pool)
         .await
-        .map_err(|e| e.storage_err())
+        .map_err(|e| e.storage_err())?;
+        Ok(res.last_insert_id() as i64)
     }
 
     pub async fn find_by_hash(&self, refresh_hash: &str) -> Result<SessionRow, AppError> {

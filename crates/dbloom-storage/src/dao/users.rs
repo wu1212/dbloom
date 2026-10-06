@@ -44,7 +44,7 @@ impl UserDao {
         created_by: Option<i64>,
         now_ms: i64,
     ) -> Result<UserRow, AppError> {
-        sqlx::query_as::<_, UserRow>(
+        let res = sqlx::query(
             r#"
             INSERT INTO users
               (username, password_hash, role, status, display_name, must_change_password,
@@ -59,9 +59,11 @@ impl UserDao {
         .bind(created_by)
         .bind(now_ms)
         .bind(now_ms)
-        .fetch_one(&self.pool)
+        .execute(&self.pool)
         .await
-        .map_err(|e| e.storage_err())
+        .map_err(|e| e.storage_err())?;
+        let id = res.last_insert_id() as i64;
+        self.get_by_id(id).await
     }
 
     /// 按 id 查未软删用户。
