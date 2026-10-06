@@ -6,7 +6,7 @@
 > v1.2（2026-10-06）：**D2 修正** —— 引擎由「源码裁剪纳入」改为「**官方发布包原样引入**、零改写」；
 > 新增 **D27（客户端引擎复用 dbx）** —— 不再自研/重写已验证的数据库客户端能力，直接依赖 dbx crate。
 > v1.3（2026-10-06）：**源码复用原则定为最高优先级**（用户定稿）—— seatunnel/dbx 源码**复制进本仓**
-> （`engine/` 与 `dbx/`），各自身擅长的领域，**用不到就删、不合适就改源码，禁止从头重写**。
+> （`seatunnel/` 与 `dbx/`），各自身擅长的领域，**用不到就删、不合适就改源码，禁止从头重写**。
 > D2 由「原样引入」校准为「**源码复制进仓 + 复用为主（删用不到/改不合适）**」；D27 由「依赖 dbx」校准为「**dbx 源码 vendored 进仓**」。
 > 配套文档：`01-data-model.md`（数据模型 MySQL/PG ORM）、`02-api.md`（REST/OpenAPI）、
 > `03-modules.md`（代码结构）、`04-security.md`（安全）、`05-deploy.md`（部署）、`06-milestones.md`（里程碑）。
@@ -28,7 +28,7 @@
 | # | 决策点 | 结论 |
 | --- | --- | --- |
 | D1 | 总体架构 | 沿用 SeaTunnel **master + worker** 模式；部署形态 docker / docker compose / k8s；**不部署 reload 服务** |
-| D2 | 引擎融合 | **源码复制进仓 + 复用为主**（v1.3 校准）：seatunnel 源码复制进 `engine/`（Maven 工程，pom 锁 2.3.12），作为引擎运行时与客户端一侧融合；统一镜像内 COPY `engine/` 产物（+ JVM）+ 控制面二进制双进程；`dbloom-sync` 做 **HOCON 生成 + REST(8080) 调度**（submit/status/cancel）；**用不到就删（reload/engine-ui/无关 connector）、不合适就改源码**，随官方升级评估合入；不依赖 `apache/seatunnel` 官方镜像（自建统一镜像） |
+| D2 | 引擎融合 | **源码复制进仓 + 复用为主**（v1.3 校准）：seatunnel 源码复制进 `seatunnel/`（Maven 工程，pom 锁 2.3.12），作为引擎运行时与客户端一侧融合；统一镜像内 COPY `seatunnel/` 产物（+ JVM）+ 控制面二进制双进程；`dbloom-sync` 做 **HOCON 生成 + REST(8080) 调度**（submit/status/cancel）；**用不到就删（reload/engine-ui/无关 connector）、不合适就改源码**，随官方升级评估合入；不依赖 `apache/seatunnel` 官方镜像（自建统一镜像） |
 | D3 | 控制面技术栈 | **Rust**（dbloom-server）+ React(Vite)+antd 前端 + SeaTunnel(Java) 执行面 |
 | D4 | 同步任务类型 | 批量 / 增量 / CDC —— **全部透传 SeaTunnel 原生能力**，dbloom 只做编排、调度与 HOCON 生成，不改自研断点 |
 | D5 | 任务管理深度 | 完整档：调度(内置 cron)、增量断点(透传 ST)、失败重试、任务 DAG、告警、血缘/审计 |
@@ -135,7 +135,7 @@
 3. **元数据库用外部关系库**（MySQL/PG + ORM，D10）：dbloom-server 可多副本并行写（外部库行锁/事务保证一致性）；调度防重靠**元数据库唯一约束/行锁**（`scheduler_jobs` 抢锁 CAS），不依赖单写实例（`04-security.md` §4 与 `05-deploy.md` §3）。
 4. **租户过滤在数据访问层强制**：任何业务代码不得绕过 `owner_user_id` 过滤（`01-data-model.md` / `04-security.md`）。
 5. **同步语义透传**（D4）：dbloom 不实现 ETL 语义，HOCON 直接生成 SeaTunnel 原生配置（含 CDC/增量），由引擎执行。
-6. **源码复用（最高优先级，v1.3）**：seatunnel/dbx 已验证能力**禁止从头重写**；源码复制进本仓（`engine/`、`dbx/`），
+6. **源码复用（最高优先级，v1.3）**：seatunnel/dbx 已验证能力**禁止从头重写**；源码复制进本仓（`seatunnel/`、`dbx/`），
    用不到就删、不合适就改源码；dbloom 只自研融合层（控制面/租户/鉴权/manifest/HOCON/编排/前端）。
 
 ---
@@ -178,7 +178,7 @@ k8s：元数据库（StatefulSet MySQL/PG 或外部托管实例）+ Deployment m
 dbloom/
 ├─ docs/design/            # 本套目标态设计文档
 ├─ apps/web/               # React + Vite + antd 前端
-├─ engine/                 # seatunnel 源码复制区（复用为主：删用不到/改不合适，D2/D24a）
+├─ seatunnel/             # seatunnel 源码复制区（复用为主：删用不到/改不合适，D2/D24a）
 ├─ crates/
 │  ├─ dbloom-server/       # HTTP+WS 装配、路由层
 │  ├─ dbloom-iam/          # 用户/认证/API Key/多租户过滤

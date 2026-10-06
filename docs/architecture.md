@@ -233,7 +233,7 @@ dbloom/
 ├─ docs/                        # 本文档等
 ├─ apps/
 │  └─ web/                      # React + Vite 前端（连接配置/SQL 工作台/任务管理）
-├─ engine/                      # SeaTunnel Engine（Java/Maven，本地 2.3.12 定制版）——内嵌执行引擎，纳入本仓统一维护
+├─ seatunnel/                   # SeaTunnel Engine（Java/Maven，本地 2.3.12 定制版）——内嵌执行引擎，纳入本仓统一维护
 │  ├─ seatunnel-engine/         #   引擎本体（源：G:\work\seatunnel 的 seatunnel-engine）
 │  ├─ seatunnel-connectors-v2/  #   连接器（首批范围见待确认）
 │  └─ pom.xml                   #   版本锁定 2.3.12 定制分支
@@ -272,7 +272,7 @@ dbloom/
 
 ### 7.1 docker（单机/单容器）
 - **统一 `dbloom` 镜像**（前端静态资源 + Rust 控制面 + 内嵌 SeaTunnel Engine；多阶段构建借鉴 dbx，
-  JVM 引擎层源自 engine/ 工程）——**不依赖官方 `apache/seatunnel` 镜像**。
+  JVM 引擎层源自 seatunnel/ 工程）——**不依赖官方 `apache/seatunnel` 镜像**。
 - 单机方式：一个容器内按角色启动控制面 + 引擎 master/worker（本地模式：master 内置 worker，✅ 控制面与
   引擎 master 同节点），或 host 直接起进程。
 - 卷：`dbloom-data`（命名卷，内部结构同 §5.6：`logs/` + `files/` + `plugins/custom-jar/` + `checkpoint/`）；元数据连外部 MySQL/PG（可同机起 mysql 容器或用 `--link`/compose 编排）。
@@ -311,7 +311,7 @@ volumes:
 | M0 | workspace 骨架 + 元数据库初始化（ORM MySQL/PG，schema 迁移、租户过滤封装）+ 用户体系（内置管理员、**仅管理员创建用户**）+ JWT 登录 + API Key 管理（**简单生命周期**）| 技术栈确认 |
 | M1 | 连接管理 API + 前端空壳 + 连接测试 | M0 |
 | M2 | 数据库客户端（**首批 6 库**，对齐 dbx）：SQL 工作台、元数据/表结构、数据浏览 | —— |
-| M3 | 引擎纳入（`engine/` 子工程构建出可运行内嵌引擎）+ SeaTunnel 集成：HOCON 生成、提交、状态查询 | M0 |
+| M3 | 引擎纳入（`seatunnel/` 工程构建出可运行内嵌引擎）+ SeaTunnel 集成：HOCON 生成、提交、状态查询 | M0 |
 | M4 | 任务管理（**完整档**）：列表/调度定时/增量断点/重试/启停/日志/删除/历史/告警/血缘审计 | —— |
 | M5 | 部署三形态（**master 与 dbloom-server 同节点**）：docker / compose / k8s | —— |
 

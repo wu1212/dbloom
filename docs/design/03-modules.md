@@ -11,7 +11,7 @@
 ```text
 dbloom/
 ├─ apps/web/                  # 前端（React + Vite + antd，D12/D25）
-├─ engine/                    # seatunnel 源码复制区（复用为主：删用不到/改不合适，D2/D24a）
+├─ seatunnel/                # seatunnel 源码复制区（复用为主：删用不到/改不合适，D2/D24a）
 ├─ crates/
 │  ├─ dbloom-server/          # HTTP+WS 装配、路由、OpenAPI 契约装配（二进制）
 │  ├─ dbloom-iam/             # 用户/认证/API Key/多租户过滤/审计写入
@@ -149,7 +149,7 @@ apps/web/
 
 ---
 
-## 5. engine/ 源码复用与裁剪范围（D2/D24a：复用为主，用不到就删、不合适改源码）
+## 5. seatunnel/ 源码复用与裁剪范围（D2/D24a：复用为主，用不到就删、不合适改源码）
 
 纳入（复用 `G:\work\seatunnel` 源码，按需裁剪）：
 - `seatunnel-api`、`seatunnel-engine/engine-core`（master/worker 运行时）、`engine-server`（REST/web）、`engine-client`、`engine-common`、`engine-storage`（checkpoint）。

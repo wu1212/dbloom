@@ -21,7 +21,7 @@
 # ==== 阶段2：Rust 控制面 ====
 # rust → cargo build --release → 产出 dbloom-server 二进制
 # ==== 阶段3：引擎运行时 ====
-# eclipse-temurin:8-jre（或按本地定制分支要求）→ 拷贝 engine/ 构建产物(seatunnel 解包目录)
+# eclipse-temurin:8-jre（或按本地定制分支要求）→ 拷贝 seatunnel/ 构建产物(seatunnel 解包目录)
 # ==== 最终镜像 ====
 # jre 基础 + dbloom-server + engine 运行时 + apps/web dist + entrypoint 脚本
 ```

@@ -7,7 +7,7 @@
 
 ## ⭐ 源码复用原则（最高优先级，2026-10-06 用户定稿）
 seatunnel 与 dbx 的源码是**经过无数场景验证**的成熟代码，dbloom 是**融合**它们，**不是从头重写**。落地方式：
-1. **两份源码都复制进本仓**：seatunnel 源码 → `engine/`（Maven 工程）；dbx crate 源码 → `dbx/`（Cargo vendored 目录，经 **path 依赖**引入本仓 workspace）。本仓内直接改源码。
+1. **两份源码都复制进本仓**：seatunnel 源码 → `seatunnel/`（Maven 工程）；dbx crate 源码 → `dbx/`（Cargo vendored 目录，经 **path 依赖**引入本仓 workspace）。本仓内直接改源码。
 2. **各自身擅长的领域**：客户端能力（查询/元数据/行编辑/写保护/导出/连接测试）= 复用 **dbx**（D27）；同步引擎/连接器/调度 = 复用 **seatunnel**（D2）。
 3. **用不到就删**：按已定裁剪范围删除无关模块（如 seatunnel 的 reload 服务、engine-ui、无关 connector 等），删除而非绕过。
 4. **不合适就改源码**：进仓源码可以直接改造适配 dbloom，而不是绕开它另写一套或重写。
@@ -48,7 +48,7 @@ seatunnel 与 dbx 的源码是**经过无数场景验证**的成熟代码，dblo
 - ✅ **自定义 jar = 普通用户各自上传、按用户隔离**（2026-10-06 拍板，D26）：jar 供 SeaTunnel 自定义
   source/sink/transform 用；仅本人任务可引用本人 jar；管理员可审计/禁用用户（docs/design/04-security.md §5.1）
 - ✅ **引擎融合方式 = 完整内置引擎**（2026-10-06 拍板）：SeaTunnel Engine（本地 2.3.12 定制版）源码
-  纳入本仓 `engine/` 统一维护，构建**统一镜像**（前端 + Rust 控制面 + JVM 引擎，同镜像双进程）；
+  纳入本仓 `seatunnel/` 统一维护，构建**统一镜像**（前端 + Rust 控制面 + JVM 引擎，同镜像双进程）；
   **不再依赖官方 apache/seatunnel 镜像**；控制面经引擎 REST（8080）提交/管理任务
 - ✅ **OpenAPI API Key 粒度 = 完整开放、不分作用域**（2026-10-06 拍板）：Key 是纯身份凭证，
   鉴权通过即拥有所绑用户的全部能力；不细分 scope（限流/IP 白名单等仅作预留扩展）
@@ -83,7 +83,7 @@ seatunnel 与 dbx 的源码是**经过无数场景验证**的成熟代码，dblo
 - dbx：= Rust workspace 分层（core→drivers→sql→types 单向依赖），连接类型插件化 `plugins/connection-types`（manifest 单一事实来源，build.rs 生成前端 TS html）；服务端 dbx-web 端口 4224；docker 单镜像多阶段构建
 
 ## 当前状态
-- 2026-10-06：**源码复用原则定稿**（最高优先级）：seatunnel/dbx 源码**复制进本仓**（`engine/` Maven / `dbx/` vendored+path 依赖），各自身擅长的领域；**用不到就删、不合适就改源码、禁止从头重写**（见文首「⭐ 源码复用原则」章节）。设计文档校准至 v1.3（D2 源码复制进仓、D27 dbx vendored、新增 D24a）。
+- 2026-10-06：**源码复用原则定稿**（最高优先级）：seatunnel/dbx 源码**复制进本仓**（`seatunnel/` Maven / `dbx/` vendored+path 依赖），各自身擅长的领域；**用不到就删、不合适就改源码、禁止从头重写**（见文首「⭐ 源码复用原则」章节）。设计文档校准至 v1.3（D2 源码复制进仓、D27 dbx vendored、新增 D24a）。
   - 下一步：M3（引擎纳入 + 同步任务最小垂直切片）前置工单——先做 dbx 源码 vendored 支线（M2 后支线，M3 关键路径）或直接开 M3
 - 2026-10-06：**M0 已完成并通过全链路验收**（commit af20669 / 首次 M0 提交见 e428266 后追加）
   - Rust workspace 7 crate 骨架；`dbloom-storage`（MySQL+迁移+DAO+TenantScope）、`dbloom-iam`

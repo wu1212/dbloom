@@ -21,7 +21,7 @@
 
 - 控制面：**Rust**（`dbloom-server`，借鉴 dbx 的驱动/SQL 层能力）
 - 前端：**React（Vite）+ Ant Design** 纯 Web 页面（浏览器访问；dbx 前端资源平移，非 Tauri 桌面壳）
-- 执行面：**SeaTunnel（Java）master + worker**，**完整内置引擎**——引擎与 dbx 源码均已**复制进仓**（`engine/`、`dbx/`），
+- 执行面：**SeaTunnel（Java）master + worker**，**完整内置引擎**——引擎与 dbx 源码均已**复制进仓**（`seatunnel/`、`dbx/`），
   复用为主（删用不到、改不合适、不重写，见 AGENTS.md「源码复用原则」），构建**统一镜像**（前端 + 控制面 + 引擎同镜像），不依赖官方 apache/seatunnel 镜像
 - 部署：docker / docker compose / k8s（三形态，dbloom 只出 HTTP，TLS 由外部网关终止），不部署 SeaTunnel reload 服务
 - 持久化：元数据用**外部关系数据库**（默认 **MySQL**，PostgreSQL 可切换，经 **ORM 层**适配）；非结构化数据
@@ -47,8 +47,8 @@
 - [x] **M0 基础设施底座**：cargo workspace（common/types/storage/iam/server/connector/sync 7 crate）+ IAM（用户/会话/API Key/审计）+ 元数据库 ORM（MySQL）+ axum 服务 + OpenAPI；单测 + 集成实测通过
 - [x] **M1 连接管理**：连接类型 manifest（首批 6 库）+ 凭据 AES-GCM 加密 + 连接 CRUD/test/lock + 租户隔离（越权 404）+ apps/web 脚手架（登录/连接页）
 - [x] **M2 数据库客户端核心**：SQL 工作台（执行/分页/超时）+ 元数据（库/表/列/DDL）+ 行浏览/更新/删除 + D6 写保护（危险语句识别 + 二次确认 + 只读锁）+ 导出 CSV/JSON/SQL/XLSX + 路径穿越防护；cargo test 24 绿 + 浏览器端到端通过
-- [x] **源码进仓**：seatunnel 2.3.12 定制版 → `engine/`（Maven 工程）+ dbx 驱动核心 → `dbx/`（Cargo workspace）；源码复用原则定稿
-- [ ] **M3 引擎纳入 + 同步任务**（最大风险项：引擎构建环境 + HOCON 渲染 + REST 提交 + 任务管理；`engine/` 源码已就位待构建）
+- [x] **源码进仓**：seatunnel 2.3.12 定制版 → `seatunnel/`（Maven 工程）+ dbx 驱动核心 → `dbx/`（Cargo workspace）；源码复用原则定稿
+- [ ] **M3 引擎纳入 + 同步任务**（最大风险项：引擎构建环境 + HOCON 渲染 + REST 提交 + 任务管理；`seatunnel/` 源码已就位待构建）
 - [ ] **M4+** 调度 / 告警 / 多副本部署 / 审计台 / connector 层替换为 dbx 复用（D27 支线）
 
 ## 文档
@@ -62,7 +62,7 @@
 dbloom/
 ├─ apps/web/         # 前端（React + Vite + Ant Design）
 ├─ crates/           # 控制面 Rust workspace（dbloom-{common,types,storage,iam,server,connector,sync} 7 crate）
-├─ engine/seatunnel  # ★ seatunnel 源码（2.3.12 定制版，Maven 工程，复用为主：删用不到/改不合适/不重写）
+├─ seatunnel/       # ★ seatunnel 源码（2.3.12 定制版，Maven 工程，复用为主：删用不到/改不合适/不重写）
 ├─ dbx/              # ★ dbx 源码（驱动核心 crates，Cargo workspace，复用为主）
 ├─ docs/             # 架构背景（architecture.md）+ 目标态设计（design/00–06）
 ├─ shared/           # 共享数据根（运行时：导出文件/日志/jar/checkpoint，多节点共享卷；运行数据不入库，仅 .gitkeep）
