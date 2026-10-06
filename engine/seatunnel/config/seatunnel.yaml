@@ -1,0 +1,63 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+seatunnel:
+  engine:
+    classloader-cache-mode: true
+    history-job-expire-minutes: 1440
+    backup-count: 1
+    queue-type: blockingqueue
+    print-execution-info-interval: 60
+    print-job-metrics-info-interval: 60
+    slot-service:
+      dynamic-slot: true
+    checkpoint:
+      interval: 10000
+      timeout: 60000
+      storage:
+        type: localfile
+        max-retained: 3
+        plugin-config:
+          namespace: /tmp/seatunnel/checkpoint_snapshot
+    telemetry:
+      metric:
+        enabled: false
+      logs:
+        scheduled-deletion-enable: true
+    http:
+      enable-http: true
+      port: 8080
+      enable-dynamic-port: false
+      # Uncomment the following lines to enable basic authentication for web UI
+      # enable-basic-auth: true
+      # basic-auth-username: admin
+      # basic-auth-password: admin
+    # Storage configuration of files uploaded through the REST API (/upload-file).
+    # In multi-replica deployments, mount the same shared volume to these directories on every replica.
+    # Environment variables SEATUNNEL_UPLOAD_FILE_PATH / SEATUNNEL_UPLOAD_JAR_PATH have higher priority than this configuration.
+    upload-file:
+      # Storage path of data files used as source or sink. Default: ${SEATUNNEL_HOME}/data/upload-files
+      # path: /opt/seatunnel/data/upload-files
+      # Storage path of custom jar packages. Default: ${SEATUNNEL_HOME}/data/upload-jars
+      # jar-path: /opt/seatunnel/data/upload-jars
+      # Retention days of uploaded data files; the scheduled task deletes files older than this. Default: 7
+      # retention-days: 7
+      # Interval (in minutes) of the scheduled cleanup task. Default: 60
+      # cleanup-interval: 60
+      # cleanup-paths:
+      # - /opt/seatunnel/data/upload-files
+      # - /data/shared/temp

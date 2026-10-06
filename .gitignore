@@ -77,3 +77,6 @@ data/
 
 # build & run logs
 *.log
+
+# seatunnel 官方源码包半成品（勿用，源码来自 G:\work\seatunnel 定制版）
+engine/apache-seatunnel-2.3.12-src.tar.gz
