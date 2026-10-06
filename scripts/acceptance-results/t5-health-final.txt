@@ -1,0 +1,15 @@
+==== t5-health-final.txt ====
+# T5 真实探测最终留档
+# 场景1：引擎运行中  =>  engine=true
+# 场景2：引擎已停止  =>  engine=false + reason（服务保持 200）
+2026-10-06 21:23:48
+
+[场景1 - 引擎运行中]
+GET /api/v1/health
+HTTP 200
+{"code":0,"data":{"engine":true,"engine_reason":"seaTunnel 集群在线（nodes=0）","status":"ok","storage":true,"version":"0.1.0"}}
+
+[场景2 - 引擎已停止]
+GET /api/v1/health
+HTTP 200
+{"code":0,"data":{"engine":false,"engine_reason":"引擎不可达：连接失败（引擎可能未启动） (error sending request for url (http://127.0.0.1:8080/overview))","status":"ok","storage":true,"version":"0.1.0"}}

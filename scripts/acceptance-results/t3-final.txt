@@ -1,0 +1,3 @@
+﻿T3 acceptance: PASS=32 FAIL=0  (20261006-214626)
+=> 跨用户 GET/PUT/DELETE/TRIGGER/QUERY/EXPORT 全 4xx/隔离；API Key 签发即用/未来不可用/过去不可用/撤销立即失效/停用即时；审计 login/conn_create/apikey_issue/revoke 可查且 admin only。
+
