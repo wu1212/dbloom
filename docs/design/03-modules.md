@@ -11,7 +11,7 @@
 ```text
 dbloom/
 ├─ apps/web/                  # 前端（React + Vite + antd，D12/D25）
-├─ engine/                    # 裁剪精简的 SeaTunnel（Maven 多模块，D2）
+├─ engine/                    # seatunnel 源码复制区（复用为主：删用不到/改不合适，D2/D24a）
 ├─ crates/
 │  ├─ dbloom-server/          # HTTP+WS 装配、路由、OpenAPI 契约装配（二进制）
 │  ├─ dbloom-iam/             # 用户/认证/API Key/多租户过滤/审计写入
@@ -64,8 +64,9 @@ dbloom/
 - **审计写入**：`audit(actor, action, resource, detail)`（D21）。
 
 ### 2.5 `dbloom-connector`（客户端能力，D17 统一转发执行）—— **薄包装，复用 dbx（D27）**
-> **原则（D27）：不重写已验证代码。** 查询 / 元数据 / 行编辑 / 写保护 / 导出 / 连接测试全部**直接依赖 dbx 开源 crate 族**
-> （`G:\work\dbx`，Apache-2.0），dbloom-connector 只做 **DTO ↔ `dbx::models::connection::ConnectionConfig` 薄映射**。
+> **原则（D27/D24a）：不重写已验证代码。** 查询 / 元数据 / 行编辑 / 写保护 / 导出 / 连接测试全部**复用 dbx 开源 crate 族**
+> （Apache-2.0）；**v1.3 校准：dbx crate 源码 vendored 复制进本仓 `dbx/`，经 Cargo path 依赖引入**，需要适配时直接改仓内源码。
+> dbloom-connector 只做 **DTO ↔ `dbx::models::connection::ConnectionConfig` 薄映射**。
 
 - **层叠**：
   1. `dbx` 聚合 crate 或 `dbx-driver-{mysql,postgres,sqlserver,mongodb,redis,elasticsearch}`（D7 六库）+ `dbx-sql-*` / `dbx-formats` / `dbx-core::{safety, data, query}` —— 全部已场景验证，按需 path 依赖引入。
@@ -148,7 +149,7 @@ apps/web/
 
 ---
 
-## 5. engine/ 裁剪范围（D2：裁剪精简）
+## 5. engine/ 源码复用与裁剪范围（D2/D24a：复用为主，用不到就删、不合适改源码）
 
 纳入（复用 `G:\work\seatunnel` 源码，按需裁剪）：
 - `seatunnel-api`、`seatunnel-engine/engine-core`（master/worker 运行时）、`engine-server`（REST/web）、`engine-client`、`engine-common`、`engine-storage`（checkpoint）。

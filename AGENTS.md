@@ -5,6 +5,14 @@
 - 数据同步能力 ← 参考 `G:\work\seatunnel`（Apache SeaTunnel 2.3.12，Java 8 / Maven 多模块）
 - 数据库客户端能力 ← 参考 `G:\work\dbx`（dbx：Rust / Tauri / Cargo workspace，100+ 数据库，AI 助手，MCP Server）
 
+## ⭐ 源码复用原则（最高优先级，2026-10-06 用户定稿）
+seatunnel 与 dbx 的源码是**经过无数场景验证**的成熟代码，dbloom 是**融合**它们，**不是从头重写**。落地方式：
+1. **两份源码都复制进本仓**：seatunnel 源码 → `engine/`（Maven 工程）；dbx crate 源码 → `dbx/`（Cargo vendored 目录，经 **path 依赖**引入本仓 workspace）。本仓内直接改源码。
+2. **各自身擅长的领域**：客户端能力（查询/元数据/行编辑/写保护/导出/连接测试）= 复用 **dbx**（D27）；同步引擎/连接器/调度 = 复用 **seatunnel**（D2）。
+3. **用不到就删**：按已定裁剪范围删除无关模块（如 seatunnel 的 reload 服务、engine-ui、无关 connector 等），删除而非绕过。
+4. **不合适就改源码**：进仓源码可以直接改造适配 dbloom，而不是绕开它另写一套或重写。
+5. **禁止**从头重写任何 seatunnel/dbx 已验证的能力；dbloom 自研代码只覆盖「融合层」：控制面 API、租户/鉴权、manifest/HOCON 生成、任务编排、前端。
+
 ## Git 约定
 - 远程仓库：https://github.com/wu1212/dbloom.git（origin）
 - 默认分支：main
@@ -75,6 +83,8 @@
 - dbx：= Rust workspace 分层（core→drivers→sql→types 单向依赖），连接类型插件化 `plugins/connection-types`（manifest 单一事实来源，build.rs 生成前端 TS html）；服务端 dbx-web 端口 4224；docker 单镜像多阶段构建
 
 ## 当前状态
+- 2026-10-06：**源码复用原则定稿**（最高优先级）：seatunnel/dbx 源码**复制进本仓**（`engine/` Maven / `dbx/` vendored+path 依赖），各自身擅长的领域；**用不到就删、不合适就改源码、禁止从头重写**（见文首「⭐ 源码复用原则」章节）。设计文档校准至 v1.3（D2 源码复制进仓、D27 dbx vendored、新增 D24a）。
+  - 下一步：M3（引擎纳入 + 同步任务最小垂直切片）前置工单——先做 dbx 源码 vendored 支线（M2 后支线，M3 关键路径）或直接开 M3
 - 2026-10-06：**M0 已完成并通过全链路验收**（commit af20669 / 首次 M0 提交见 e428266 后追加）
   - Rust workspace 7 crate 骨架；`dbloom-storage`（MySQL+迁移+DAO+TenantScope）、`dbloom-iam`
     （argon2/JWT/refresh/登录锁定/用户CRUD/API Key/审计）、`dbloom-server`（axum 路由 + 认证中间件 + OpenAPI）

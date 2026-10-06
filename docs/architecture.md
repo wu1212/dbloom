@@ -9,8 +9,8 @@
 > v0.6（2026-10-06）：**第二批决策拍板** —— ① 数据库客户端首批覆盖 = 对齐 dbx 现有 6 库（mysql/postgres/sqlserver/mongodb/redis/elasticsearch）；② 任务管理深度 = **完整档**（调度定时 / 增量断点 / 重试 / 任务 DAG / 告警 / 血缘审计）；③ master 与 dbloom-server **同节点**（master 上跑控制面 + 引擎 master，worker 独立扩展）；④ 普通用户**仅管理员创建**（无自助注册）；⑤ API Key 生命周期 = **简单策略**（到期即失效、撤销立即生效、暂不设数量上限）。
 > **v0.7（2026-10-06，重置 D10）**：**SQLite 方案作废** —— 元数据改用**外部关系数据库（默认 MySQL，PostgreSQL 可切换）+ ORM 层适配**（设计见 `docs/design/01-data-model.md`、`05-deploy.md`）；共享卷只保留非结构化数据（日志 / 上传下载文件 / 自定义 jar / checkpoint）。dbloom-server **无状态可多副本**，不再有「单写者 / 只读副本」概念。另拍板 **D26 = 自定义 jar 普通用户各自上传、按用户隔离**（见 `docs/design/04-security.md` §5.1）。本草案下文凡与 v0.7 冲突处，一律以 **v1.1 design 卷** 为准。
 > 技术栈选型已确认：**Rust 控制面 + React 前端 + SeaTunnel 引擎（Java）**。
-> 后续决策（写保护/同步类型透传/告警渠道/antd/无 CLI/Apache-2.0/引擎裁剪/HTTP only/统一转发/安全默认值等 26 项）与目标态设计
-> 见 **`docs/design/00-overview.md` §2 决策清单**（v1.1）。
+> 后续决策（写保护/同步类型透传/告警渠道/antd/无 CLI/Apache-2.0/引擎源码复用/HTTP only/统一转发/安全默认值等 26 项 + 源码复用原则 D24a）与目标态设计
+> 见 **`docs/design/00-overview.md` §2 决策清单**（v1.3）。
 
 ---
 
@@ -336,5 +336,5 @@ volumes:
    （连接管理 / SQL 查询 / 任务提交与管理）。
 9. ~~普通用户来源~~ ✅ 已拍板（2026-10-06）：**仅管理员在后台创建**，无自助注册。
 10. **其余设计项全部拍板完毕**（写边界=读+写+二次确认、同步类型=透传 ST 原生、告警渠道=SMTP+Webhook、
-    UI=antd、无 CLI、License=Apache-2.0、引擎裁剪精简、HTTP only、**统一转发**、查询/会话/密码/审计/保留/
-    导出等安全默认值）→ 完整 25 项决策清单与设计见 **`docs/design/00-overview.md`**。本草案不再有 ❓ 待确认项。
+    UI=antd、无 CLI、License=Apache-2.0、引擎源码复用、HTTP only、**统一转发**、查询/会话/密码/审计/保留/
+    导出等安全默认值）→ 完整 26 项决策清单 + **源码复用原则（D24a：复制进仓/删/改，禁止重写）** 见 **`docs/design/00-overview.md`**。本草案不再有 ❓ 待确认项。

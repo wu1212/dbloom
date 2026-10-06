@@ -28,7 +28,7 @@
 - **验收**：查询真实库 6 库各跑通 SELECT；无 WHERE UPDATE 被拦截；只读锁连接写操作被拒；导出 4 格式文件内容正确落共享卷；WS 流式 >5000 行可分页拉完。
 
 ## M3 — 引擎纳入与同步任务跑通（最小垂直切片）
-- [ ] 引擎**原样引入（D2 修正）**：SeaTunnel 官方发布包（bin/config/connectors 零改写）入统一镜像；`dbloom-sync` HOCON 生成 + `submit/status/cancel` REST；`-r master/worker` 跑通集群；`upload-file`/REST 可用。
+- [ ] 引擎**源码复制进仓（D2/D24a）**：seatunnel 源码嵌入 `engine/`（Maven 工程），**用不到就删**（reload 服务、engine-ui、无关 connector、示例 job），**不合适就改源码**；构建产物入统一镜像；`dbloom-sync` HOCON 生成 + `submit/status/cancel` REST；`-r master/worker` 跑通集群；`upload-file`/REST 可用。
 - [ ] `dbloom-sync`：HOCON 生成（manifest snippet 渲染，含 D26 自定义 jar 归属校验）→ `submit-job` → 状态轮询 → `task_runs` 落库。
 - [ ] `tasks` schema + CRUD + 手动 `trigger`/`stop`/`retry` + 运行历史/日志（`logs/tasks/`）。
 - [ ] 统一镜像：前端 + server + 引擎同镜像；`DBLOOM_ROLE` entrypoint；compose 起 master+worker。
@@ -68,6 +68,6 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──► M5 ──► M6
                  ▲────────┘  │  ▲──────┘
                  (M2 完成后 M3 可 M1 并行微调)（M4 依赖 M3 引擎就绪）
 ```
-- 关键路径：M3（引擎原样引入 + 调度打通）是最大不确定项 —— **M2 收尾后立即启动 M3**，它是最容易卡住的地方。
-- M2 之后的改进切一条**独立支线**：把 `dbloom-connector` 从自研实现替换为 **dbx 复用（D27）**，与 M3 并行推进（互不阻塞）。
+- 关键路径：M3（引擎源码复用 + 调度打通）是最大不确定项 —— **M2 收尾后立即启动 M3**，它是最容易卡住的地方。
+- M2 之后的改进切一条**独立支线**：把 `dbloom-connector` 从自研实现替换为 **dbx 源码 vendored（D27/D24a）** —— dbx crate 复制进 `dbx/`、path 依赖接入、替换自研，与 M3 并行推进（互不阻塞）。
 - M5 前端体验可与 M3/M4 同步并行（页面随后端接口逐个子模块渐进搭建）。
