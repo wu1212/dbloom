@@ -1,1 +1,1 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/api/http.ts","./src/pages/connectionspage.tsx","./src/pages/loginpage.tsx","./src/store/auth.ts","./vite.config.ts"],"version":"5.9.3"}
+{"root":["./src/app.tsx","./src/main.tsx","./src/api/http.ts","./src/pages/connectionspage.tsx","./src/pages/loginpage.tsx","./src/pages/querypage.tsx","./src/store/auth.ts","./vite.config.ts"],"version":"5.9.3"}

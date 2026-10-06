@@ -26,6 +26,8 @@ dbloom-types = { path = "../dbloom-types" }
 dbloom-storage = { path = "../dbloom-storage" }
 dbloom-iam = { path = "../dbloom-iam" }
 dbloom-connector = { path = "../dbloom-connector" }
+chrono = "0.4"
+rust_xlsxwriter = "0.74"
 
 [dev-dependencies]
 hyper = { version = "1", features = ["full"] }

@@ -6,7 +6,11 @@
 mod apikeys;
 mod auth;
 mod connections;
+mod data;
+mod export;
 mod health;
+mod meta;
+mod query;
 mod users;
 
 use axum::{
@@ -54,6 +58,17 @@ pub fn build_router(state: Arc<AppState>) -> Router {
         .route("/connections/:id/test", post(connections::test))
         .route("/connections/:id/lock", post(connections::lock))
         .route("/connections/:id/unlock", post(connections::unlock))
+        // SQL 工作台 / 元数据 / 行编辑 / 导出（M2）
+        .route("/query", post(query::execute))
+        .route("/meta/databases", post(meta::databases))
+        .route("/meta/tables", post(meta::tables))
+        .route("/meta/columns", post(meta::columns))
+        .route("/meta/ddl", post(meta::ddl))
+        .route("/data/rows", post(data::list))
+        .route("/data/rows/update", post(data::update))
+        .route("/data/rows/delete", post(data::delete))
+        .route("/export", post(export::create))
+        .route("/export/download", get(export::download))
         .layer(middleware::from_fn_with_state(
             state.clone(),
             crate::auth::auth_middleware,

@@ -129,7 +129,7 @@ async fn test_postgres(p: &ConnParams) -> std::result::Result<(), String> {
 }
 
 /// 精简驱动错误：换行压缩、截断（防把内部 DSN/上下文喷到前端）。
-fn clean_err(e: &str) -> String {
+pub(crate) fn clean_err(e: &str) -> String {
     let one_line = e.replace('\n', " ").trim().to_string();
     let mut s = one_line;
     if s.len() > 300 {

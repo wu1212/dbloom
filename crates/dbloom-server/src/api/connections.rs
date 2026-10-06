@@ -41,7 +41,7 @@ fn tenant_scope(ctx: &AuthCtx, explicit_user_id: Option<i64>) -> Result<TenantSc
 }
 
 /// 加载一条「当前可见」的连接：非 owner/管理员见不到 → 404（防存在性泄漏）。
-async fn load_visible(
+pub(crate) async fn load_visible(
     state: &AppState,
     ctx: &AuthCtx,
     id: i64,

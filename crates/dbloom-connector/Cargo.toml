@@ -8,6 +8,7 @@ license.workspace = true
 dbloom-common = { path = "../dbloom-common" }
 dbloom-types = { path = "../dbloom-types" }
 tokio = { workspace = true }
+futures = { workspace = true }
 sqlx = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

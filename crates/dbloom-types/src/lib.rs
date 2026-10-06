@@ -9,6 +9,7 @@ pub mod apikey;
 pub mod auth;
 pub mod connection;
 pub mod manifest;
+pub mod query;
 pub mod user;
 
 pub use apikey::{
@@ -20,4 +21,8 @@ pub use connection::{
     UpdateConnectionRequest,
 };
 pub use manifest::{Capabilities, ConnTypeManifest, FormField, all_manifests, is_supported_type, manifest_by_name};
+pub use query::{
+    ColumnItem, ColumnMeta, DatabaseItem, ExportRequest, ExportResult, QueryRequest, QueryResult,
+    RowDeleteRequest, RowKey, RowListRequest, RowUpdateRequest, RowWriteResult, TableDdl, TableItem,
+};
 pub use user::{UserDto, UserListResponse, UserRole, UserStatus};
