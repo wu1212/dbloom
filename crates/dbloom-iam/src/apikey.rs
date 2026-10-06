@@ -46,6 +46,30 @@ pub fn parse_bearer(header: &str) -> Result<&str> {
     Ok(rest)
 }
 
+/// API Key 生命周期校验（D9：status + valid_from/valid_until，缺省放行）。
+/// 返回 None=可用，Some(AppError)=被拒原因（供 authenticate_api_key 与单测共用）。
+pub fn validate_key_lifecycle(
+    status_enabled: bool,
+    valid_from: Option<i64>,
+    valid_until: Option<i64>,
+    now_ms: i64,
+) -> Option<AppError> {
+    if !status_enabled {
+        return Some(AppError::forbidden("API Key 已停用"));
+    }
+    if let Some(vf) = valid_from {
+        if now_ms < vf {
+            return Some(AppError::forbidden("API Key 尚未生效"));
+        }
+    }
+    if let Some(vu) = valid_until {
+        if now_ms > vu {
+            return Some(AppError::forbidden("API Key 已过期"));
+        }
+    }
+    None
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -70,5 +94,39 @@ mod tests {
         assert_eq!(parse_bearer("Bearer abc").unwrap(), "abc");
         assert!(parse_bearer("Basic abc").is_err());
         assert!(parse_bearer("Bearer ").is_err());
+    }
+
+    #[test]
+    fn lifecycle_default_ok() {
+        // 无生效/失效时间 + enabled → 可用
+        assert!(validate_key_lifecycle(true, None, None, 1_000).is_none());
+    }
+
+    #[test]
+    fn lifecycle_disabled_rejected() {
+        assert!(validate_key_lifecycle(false, None, None, 1_000).is_some());
+    }
+
+    #[test]
+    fn lifecycle_not_yet_valid_rejected() {
+        let now = 1_000_000;
+        // valid_from 在未来 → 拒
+        let e = validate_key_lifecycle(true, Some(now + 1), None, now).unwrap();
+        assert!(e.to_string().contains("尚未生效"));
+    }
+
+    #[test]
+    fn lifecycle_expired_rejected() {
+        let now = 1_000_000;
+        // valid_until 在过去 → 拒
+        let e = validate_key_lifecycle(true, None, Some(now - 1), now).unwrap();
+        assert!(e.to_string().contains("已过期"));
+    }
+
+    #[test]
+    fn lifecycle_boundary_ok() {
+        let now = 1_000_000;
+        // 恰好等于生效/失效边界 → 可用
+        assert!(validate_key_lifecycle(true, Some(now), Some(now), now).is_none());
     }
 }

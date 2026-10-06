@@ -140,18 +140,14 @@ impl Iam {
                 }
             })?;
 
-        if ApiKeyStatus::parse(&row.status) != Some(ApiKeyStatus::Enabled) {
-            return Err(AppError::forbidden("API Key 已停用"));
-        }
-        if let Some(vf) = row.valid_from {
-            if now_ms < vf {
-                return Err(AppError::forbidden("API Key 尚未生效"));
-            }
-        }
-        if let Some(vu) = row.valid_until {
-            if now_ms > vu {
-                return Err(AppError::forbidden("API Key 已过期"));
-            }
+        let enabled = ApiKeyStatus::parse(&row.status) == Some(ApiKeyStatus::Enabled);
+        if let Some(err) = crate::apikey::validate_key_lifecycle(
+            enabled,
+            row.valid_from,
+            row.valid_until,
+            now_ms,
+        ) {
+            return Err(err);
         }
 
         let user = self.users.get_by_id(row.user_id).await?;

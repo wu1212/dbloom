@@ -23,12 +23,14 @@ fn require_admin(ctx: &AuthCtx) -> Result<(), ApiError> {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateUserBody {
     pub username: String,
     pub display_name: Option<String>,
 }
 
 #[derive(Debug, Default, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateUserResponse {
     pub id: i64,
     pub username: String,
@@ -37,12 +39,14 @@ pub struct CreateUserResponse {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdateUserBody {
     pub display_name: Option<String>,
     pub status: Option<String>,
 }
 
 #[derive(Debug, Default, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ResetPasswordResponse {
     pub new_password: String,
 }
