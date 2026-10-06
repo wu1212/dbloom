@@ -10,14 +10,18 @@ use crate::state::AppState;
 /// GET /api/v1/health
 pub async fn health(State(state): State<Arc<AppState>>) -> Json<serde_json::Value> {
     let storage = storage_ok(&state.pool).await;
-    // 引擎连通（M3 接入后启用；D11 同主节点本地 8080）
-    let engine = false;
+    // 引擎真实探测（T5）：engine 活着=true；失败不拖垮 health，保持 200 + false + reason。
+    let (engine, engine_reason) = match state.engine.ping_with_reason().await {
+        Ok(summary) => (true, Some(summary)),
+        Err(reason) => (false, Some(reason)),
+    };
     Json(json!({
         "code": 0,
         "data": {
             "status": if storage { "ok" } else { "degraded" },
             "storage": storage,
             "engine": engine,
+            "engine_reason": engine_reason,
             "version": env!("CARGO_PKG_VERSION"),
         }
     }))
