@@ -129,6 +129,46 @@ pub struct DownloadReq {
     pub path: String,
 }
 
+/// 路径穿越防护：把请求的相对路径（须在 {shared}/export 下）规范化并校验，
+/// 任何 `..`/`.`/绝对路径/盘符一律拒绝。返回可安全使用的绝对路径。
+fn validate_download_path(root: &Path, export_root: &Path, rel: &str) -> Result<PathBuf, String> {
+    if rel.is_empty() {
+        return Err("导出下载路径为空".into());
+    }
+    // 拒绝 URL 编码（%2e%2e/等）：download 参数不经 URL 解码使用，含 % 一律视为非法
+    if rel.contains('%') {
+        return Err("导出下载路径非法（不允许 URL 编码）".into());
+    }
+    let rel_path = Path::new(rel);
+    if rel_path.is_absolute() {
+        return Err("导出下载路径非法（不允许绝对路径）".into());
+    }
+    // 字符串级白名单：拒绝 `.` / `..` 段（兼容反斜杠分隔；Path 规范化可能吃掉 `./`）
+    for seg in rel.split(['/', '\\']) {
+        if seg == "." || seg == ".." {
+            return Err("导出下载路径非法".into());
+        }
+    }
+    let mut clean = PathBuf::new();
+    for comp in rel_path.components() {
+        match comp {
+            Component::Normal(c) => clean.push(c),
+            Component::ParentDir | Component::CurDir | Component::RootDir | Component::Prefix(_) => {
+                return Err("导出下载路径非法".into());
+            }
+        }
+    }
+    if clean.as_os_str().is_empty() {
+        return Err("导出下载路径为空".into());
+    }
+    let abs = root.join(&clean);
+    // 必须位于 export_root 之下（防 `..` 逃逸到其它共享区/系统目录）
+    if !abs.starts_with(export_root) {
+        return Err("导出下载路径越界".into());
+    }
+    Ok(abs)
+}
+
 /// GET /api/v1/export/download?path=export/2026/10/xxx.csv —— 校验共享 export 根内下载。
 pub async fn download(
     State(_state): State<Arc<AppState>>,
@@ -137,23 +177,9 @@ pub async fn download(
 ) -> Result<(HeaderMap, Vec<u8>), ApiError> {
     let root = shared_root();
     let export_root = root.join("export");
-    // 路径安全：必须位于 {shared}/export/ 下（去重 `..` 后校验前缀）
-    let rel = Path::new(&q.path);
-    let mut clean = PathBuf::new();
-    for comp in rel.components() {
-        match comp {
-            Component::Normal(c) => clean.push(c),
-            Component::ParentDir | Component::CurDir | Component::RootDir | Component::Prefix(_) => {
-                return Err(ApiError::from(AppError::validation("导出下载路径非法")));
-            }
-        }
-    }
-    let abs = root.join(&clean);
-    let abs_str = abs.to_string_lossy().to_string();
-    let export_str = export_root.to_string_lossy().to_string();
-    if !abs_str.starts_with(&export_str) {
-        return Err(ApiError::from(AppError::validation("导出下载路径越界")));
-    }
+    let abs = validate_download_path(&root, &export_root, &q.path)
+        .map_err(|e| ApiError::from(AppError::validation(e)))?;
+    let clean = abs.strip_prefix(&root).unwrap_or(&abs);
     let bytes = tokio::fs::read(&abs)
         .await
         .map_err(|_| ApiError::from(AppError::not_found("导出文件不存在")))?;
@@ -310,5 +336,108 @@ fn mime_for(fname: &str) -> String {
         "application/sql; charset=utf-8".into()
     } else {
         "application/octet-stream".into()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use dbloom_types::ColumnMeta;
+    use serde_json::json;
+
+    fn cols() -> Vec<ColumnMeta> {
+        vec![
+            ColumnMeta { name: "id".into(), type_name: "INT".into(), nullable: true },
+            ColumnMeta { name: "名称".into(), type_name: "VARCHAR".into(), nullable: true },
+        ]
+    }
+
+    fn rows() -> Vec<Vec<Value>> {
+        vec![
+            vec![json!(1), json!("华东")],
+            vec![json!(2), json!("华南")],
+            vec![json!(3), json!("Bay Area")],
+        ]
+    }
+
+    #[test]
+    fn path_traversal_rejected() {
+        let root = PathBuf::from("C:/tmp/shared");
+        let export_root = root.join("export");
+        // `../`、绝对路径、空字节、URL 解码后的 `..`，全部拒绝
+        for bad in [
+            "export/../secret.txt",
+            "export/./evil",
+            "/etc/passwd",
+            "..\\..\\windows\\win.ini",
+            "export/..%2f..%2fetc%2fpasswd",
+            "",
+        ] {
+            assert!(
+                validate_download_path(&root, &export_root, bad).is_err(),
+                "应拒绝 {bad:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn valid_export_path_allowed() {
+        let root = PathBuf::from("C:/tmp/shared");
+        let export_root = root.join("export");
+        let p = validate_download_path(&root, &export_root, "export/2026/10/x.csv").unwrap();
+        assert!(p.starts_with(&export_root));
+        assert_eq!(p.file_name().unwrap().to_str().unwrap(), "x.csv");
+    }
+
+    #[test]
+    fn path_outside_export_rejected() {
+        let root = PathBuf::from("C:/tmp/shared");
+        let export_root = root.join("export");
+        // 合法组件但不能逃出 export 前缀：files 目录与 export 平级
+        assert!(validate_download_path(&root, &export_root, "files/upload/a.csv").is_err());
+    }
+
+    #[test]
+    fn csv_contains_all_rows_and_chinese() {
+        let csv = String::from_utf8(render_csv(&cols(), &rows()).unwrap()).unwrap();
+        assert!(csv.contains("id,名称"));
+        assert!(csv.contains("华东") && csv.contains("华南") && csv.contains("Bay Area"));
+        assert!(csv.lines().count() == 4); // 表头 + 3 行
+    }
+
+    #[test]
+    fn csv_escapes_comma_and_quote() {
+        let c = ColumnMeta { name: "note".into(), type_name: "VARCHAR".into(), nullable: true };
+        let r = vec![vec![json!("a,b\"c")]];
+        let csv = String::from_utf8(render_csv(&[c], &r).unwrap()).unwrap();
+        assert!(csv.contains("\"a,b\"\"c\""));
+    }
+
+    #[test]
+    fn json_and_sql_consistent_with_csv() {
+        let j = String::from_utf8(render_json(&cols(), &rows()).unwrap()).unwrap();
+        assert!(j.contains("华东") && j.contains("Bay Area"));
+        // SQL：每行一条 INSERT，值正确转义单引号
+        let s = String::from_utf8(render_sql("", &cols(), &rows()).unwrap()).unwrap();
+        assert_eq!(s.matches("INSERT INTO").count(), 3);
+        assert!(s.contains("'Bay Area'"));
+        // 引号转义
+        let r = vec![vec![json!(1), json!("it's")]];
+        let s2 = String::from_utf8(render_sql("", &cols(), &r).unwrap()).unwrap();
+        assert!(s2.contains("'it''s'"));
+    }
+
+    #[test]
+    fn sanitize_name_strips_dangerous_chars() {
+        assert_eq!(sanitize_name("../etc/passwd"), ".._etc_passwd");
+        assert_eq!(sanitize_name("正常-文件_1"), "__-___1");
+        assert_eq!(sanitize_name("a b:c"), "a_b_c");
+    }
+
+    #[test]
+    fn json_format_matches_structure() {
+        let j: Value = serde_json::from_str(&String::from_utf8(render_json(&cols(), &rows()).unwrap()).unwrap()).unwrap();
+        assert_eq!(j["columns"].as_array().unwrap().len(), 2);
+        assert_eq!(j["rows"].as_array().unwrap().len(), 3);
     }
 }

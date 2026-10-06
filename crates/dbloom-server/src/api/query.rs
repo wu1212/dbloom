@@ -183,3 +183,89 @@ pub(crate) fn truncate(s: &str, max: usize) -> String {
         format!("{t}…")
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use dbloom_connector::{SqlKind, classify_sql};
+    use dbloom_storage::dao::ConnectionRow;
+
+    /// 构造最小连接行（只关心隔离判定字段）。
+    fn row(locked: bool) -> ConnectionRow {
+        ConnectionRow {
+            id: 1,
+            owner_user_id: 1,
+            name: "t".into(),
+            conn_type: "mysql".into(),
+            host: "h".into(),
+            port: Some(3306),
+            database_name: Some("d".into()),
+            username: Some("u".into()),
+            password_enc: None,
+            ssl_mode: "disable".into(),
+            extra_params: None,
+            is_production: false,
+            read_only_lock: locked,
+            created_at: 0,
+            updated_at: 0,
+            deleted_at: None,
+        }
+    }
+
+    #[test]
+    fn readonly_lock_blocks_all_writes() {
+        let locked = row(true);
+        // 只读锁：Read 不拦，但 Update/Delete/Insert 一律拒（无论 confirm）
+        assert_eq!(write_guard_reason(&locked, &SqlKind::Read, true), None);
+        for (kind, confirm) in [
+            (SqlKind::Write, true),
+            (SqlKind::Write, false),
+            (SqlKind::Danger, true),
+            (SqlKind::Danger, false),
+        ] {
+            let r = write_guard_reason(&locked, &kind, confirm);
+            assert!(r.is_some(), "锁连接上 {kind:?} confirm={confirm} 应被拒");
+            assert!(r.unwrap().contains("只读锁"));
+        }
+    }
+
+    #[test]
+    fn write_without_confirm_asks_confirmation() {
+        let unlocked = row(false);
+        let r = write_guard_reason(&unlocked, &SqlKind::Write, false);
+        assert!(r.is_some());
+        assert!(r.unwrap().contains("confirm"));
+    }
+
+    #[test]
+    fn danger_without_confirm_asks_confirmation() {
+        let unlocked = row(false);
+        let r = write_guard_reason(&unlocked, &SqlKind::Danger, false);
+        assert!(r.is_some());
+        assert!(r.unwrap().contains("confirm"));
+    }
+
+    #[test]
+    fn write_with_confirm_passes_on_unlocked() {
+        let unlocked = row(false);
+        assert_eq!(write_guard_reason(&unlocked, &SqlKind::Write, true), None);
+        assert_eq!(write_guard_reason(&unlocked, &SqlKind::Danger, true), None);
+        assert_eq!(write_guard_reason(&unlocked, &SqlKind::Read, false), None);
+    }
+
+    #[test]
+    fn classify_and_guard_end_to_end() {
+        // UPDATE 无 WHERE → Danger → 需 confirm
+        let (k, _) = classify_sql("UPDATE t SET a=1");
+        assert_eq!(k, SqlKind::Danger);
+        assert!(write_guard_reason(&row(false), &k, false).is_some());
+        // UPDATE 带 WHERE → Write → 需 confirm
+        let (k2, _) = classify_sql("UPDATE t SET a=1 WHERE id=2");
+        assert_eq!(k2, SqlKind::Write);
+        assert!(write_guard_reason(&row(false), &k2, false).is_some());
+        assert_eq!(write_guard_reason(&row(false), &k2, true), None);
+        // 多语句 → Danger → 锁上拒
+        let (k3, _) = classify_sql("SELECT 1; DROP TABLE t");
+        assert_eq!(k3, SqlKind::Danger);
+    }
+}
