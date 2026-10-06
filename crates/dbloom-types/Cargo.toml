@@ -1,0 +1,14 @@
+[package]
+name = "dbloom-types"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+utoipa = { workspace = true }
+dbloom-common = { path = "../dbloom-common" }
+
+[dev-dependencies]
+tokio = { workspace = true }

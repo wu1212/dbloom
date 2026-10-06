@@ -1,0 +1,33 @@
+[package]
+name = "dbloom-server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "dbloom-server"
+path = "src/main.rs"
+
+[dependencies]
+tokio = { workspace = true }
+axum = { workspace = true }
+tower-http = { workspace = true }
+tower = { workspace = true }
+utoipa = { workspace = true }
+utoipa-swagger-ui = { workspace = true }
+sqlx = { workspace = true }
+dotenvy = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+uuid = { workspace = true }
+dbloom-common = { path = "../dbloom-common" }
+dbloom-types = { path = "../dbloom-types" }
+dbloom-storage = { path = "../dbloom-storage" }
+dbloom-iam = { path = "../dbloom-iam" }
+
+[dev-dependencies]
+hyper = { version = "1", features = ["full"] }
+http-body-util = "0.1"
+mime = "0.3"

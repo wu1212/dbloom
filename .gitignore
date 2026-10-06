@@ -71,3 +71,6 @@ coverage/
 *.dbf
 data/
 *.csv.bak
+
+# build & run logs
+*.log

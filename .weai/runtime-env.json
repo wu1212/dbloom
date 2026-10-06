@@ -1,0 +1,14 @@
+{
+  "java": {
+    "mode": "home",
+    "home": "D:\\jdk8\\bin"
+  },
+  "rust": {
+    "mode": "home",
+    "home": "D:\\rust-cargo\\bin"
+  },
+  "node": {
+    "mode": "home",
+    "home": "D:\\nvm\\v20.20.1"
+  }
+}

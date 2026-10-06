@@ -1,0 +1,58 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/dbloom-common",
+    "crates/dbloom-types",
+    "crates/dbloom-storage",
+    "crates/dbloom-iam",
+    "crates/dbloom-server",
+    "crates/dbloom-connector",
+    "crates/dbloom-sync",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+repository = "https://github.com/wu1212/dbloom.git"
+
+[workspace.dependencies]
+# runtime
+tokio = { version = "1", features = ["full"] }
+futures = "0.3"
+async-trait = "0.1"
+dotenvy = "0.15"
+
+# web
+axum = { version = "0.7", features = ["json", "ws", "macros"] }
+tower-http = { version = "0.5", features = ["cors", "trace", "catch-panic", "request-id"] }
+tower = "0.4"
+utoipa = { version = "4", features = ["axum_extras", "chrono"] }
+utoipa-swagger-ui = { version = "7", features = ["axum"] }
+
+# db
+sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio", "tls-rustls", "mysql", "sqlite", "json", "migrate", "macros"] }
+
+# serde
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_with = "3"
+
+# crypto / auth
+argon2 = "0.5"
+jsonwebtoken = "9"
+sha2 = "0.10"
+rand = "0.8"
+uuid = { version = "1", features = ["v4", "serde"] }
+base64 = "0.22"
+hex = "0.4"
+
+# misc
+thiserror = "2"
+anyhow = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+chrono = "0.4"
+
+[profile.release]
+lto = "thin"
