@@ -11,7 +11,8 @@
 ```text
 dbloom/
 ├─ apps/web/                  # 前端（React + Vite + antd，D12/D25）
-├─ seatunnel/                # seatunnel 源码复制区（复用为主：删用不到/改不合适，D2/D24a）
+├─ dbx/                      # ★ 复用 dbx 源码（独立 Cargo workspace：crates/ 驱动+SQL+行编辑，plugins/，vendor/）
+├─ seatunnel/                # ★ 复用 seatunnel 源码（2.3.12 定制版，完整上游 Maven 工程：engine/connectors/transforms、自带 bin/config/deploy/docs）
 ├─ crates/
 │  ├─ dbloom-server/          # HTTP+WS 装配、路由、OpenAPI 契约装配（二进制）
 │  ├─ dbloom-iam/             # 用户/认证/API Key/多租户过滤/审计写入
@@ -21,14 +22,16 @@ dbloom/
 │  ├─ dbloom-types/           # 共享 DTO / 连接类型 manifest / 任务模型 / 错误码
 │  └─ dbloom-common/          # 配置/日志/加密/时间/平台工具
 ├─ deploy/
-│  ├─ docker/                 # Dockerfile（统一镜像多阶段：web→静态、crates→server、engine→JVM 运行时）
-│  ├─ compose/                # docker-compose：dbloom-master / dbloom-worker + 共享卷
-│  └─ kubernetes/             # Helm chart：master/worker Deployment + RWX PVC + ConfigMap + Service
+│  ├─ docker/                 # 【M5】Dockerfile（统一镜像多阶段：web→静态、crates→server、engine→JVM 运行时）
+│  ├─ compose/                # 【M5】docker-compose：dbloom-master / dbloom-worker + 共享卷
+│  └─ kubernetes/             # 【M5】Helm chart：master/worker Deployment + RWX PVC + ConfigMap + Service
+├─ shared/                    # 运行时共享数据根（export/、logs/、files/、jars/、checkpoint/；挂共享卷，不入库）
 ├─ docs/
 │  ├─ architecture.md         # 背景与决策记录（来源依据）
 │  └─ design/                 # 本套目标态设计（00…06）
 ├─ README.md
-└─ AGENTS.md
+├─ AGENTS.md
+└─ Cargo.toml                # 根 workspace（仅 crates/；dbx/ seatunnel/ 独立工程互不掺和）
 ```
 
 ---

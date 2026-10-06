@@ -60,16 +60,23 @@
 
 ```
 dbloom/
-├─ apps/web/         # 前端（React + Vite + Ant Design）
-├─ crates/           # 控制面 Rust workspace（dbloom-{common,types,storage,iam,server,connector,sync} 7 crate）
-├─ seatunnel/       # ★ seatunnel 源码（2.3.12 定制版，Maven 工程，复用为主：删用不到/改不合适/不重写）
-├─ dbx/              # ★ dbx 源码（驱动核心 crates，Cargo workspace，复用为主）
-├─ docs/             # 架构背景（architecture.md）+ 目标态设计（design/00–06）
-├─ shared/           # 共享数据根（运行时：导出文件/日志/jar/checkpoint，多节点共享卷；运行数据不入库，仅 .gitkeep）
-├─ probes/           # 一次性探针（探索验证用，如 dbx-bridge）
-├─ .env.example      # 配置模板（复制为 .env 本地使用）
-└─ Cargo.toml        # workspace 根
+├─ apps/web/         # 前端（React + Vite + Ant Design，D12/D25）
+├─ crates/           # ★ 自研控制面 Rust workspace（dbloom-{common,types,storage,iam,server,connector,sync}，模块边界见 design/03）
+├─ dbx/              # ★ 复用 dbx 源码（独立 Cargo workspace：驱动/SQL 解析/Schema/行编辑/导出；改源码在仓内改）
+├─ seatunnel/        # ★ 复用 seatunnel 源码（2.3.12 定制版，独立 Maven 工程：引擎/连接器/transforms/HOCON 同步）
+├─ deploy/           # 【规划中 · M5】统一镜像 / docker compose / k8s helm（当前可参考 seatunnel/deploy）
+├─ docs/             # 架构背景（architecture.md + 历轮拍板）+ 目标态设计（design/00–06）
+├─ shared/           # 运行时共享数据根（导出/日志/jar/checkpoint；挂共享卷、运行数据不入库，仅 .gitkeep）
+├─ .env.example      # 配置模板（复制为 .env 本地使用；配置全走环境变量，见 design/05）
+├─ .gitignore        # 三层技术栈（Rust/Java/Node）+ 运行数据统一忽略
+├─ AGENTS.md         # 项目约定（源码复用原则 / D 决策索引 / 构建提交规约）
+├─ Cargo.toml        # 根 Rust workspace（仅管理 crates/；dbx/ 与 seatunnel/ 是各自独立的工程）
+└─ README.md
 ```
+
+> **三个工程的边界**：`crates/`（根 workspace，我们自研控制面）、`dbx/`（独立 Cargo workspace，复制进仓）、
+> `seatunnel/`（独立 Maven 工程，复制进仓）各是完整的独立构建单元，互不掺和。
+> dbx 与 seatunnel 内部的 `crates/`、`docs/`、`deploy/`、`bin/` 等子目录属于**上游工程自身**，与根目录同名目录无关。
 
 ## 配置文件（.env）
 
