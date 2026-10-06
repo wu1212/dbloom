@@ -196,7 +196,10 @@ fn render_source(src: &JdbcConn, source_table: &str) -> String {
     let url = jdbc_url(src);
     let user = hocon_str(src.username.as_deref().unwrap_or(""));
     let password = hocon_str(src.password.as_deref().unwrap_or(""));
-    // 表名按原样写（用户提供 database.table 或仅 table）。
+    // 表路径：用户传 `database.table` 则原样；仅表名时自动补连接库前缀。
+    // 引擎 Jdbc 多表 source 的 table_path 需含库名（如 `dbx_src.t1_src`），
+    // 否则 source 工厂初始化失败（API-06 Factory initialize failed）。
+    let table_path = qualify_table(src.database.as_deref().unwrap_or(""), source_table);
     let source_table_name = table_short_name(source_table);
     format!(
         "Jdbc {{\n      url = {url}\n      driver = {driver}\n      user = {user}\n      password = {password}\n      table_list = [\n        {{\n          table_path = {table_path}\n        }}\n      ]\n      result_table_name = {sn}\n    }}",
@@ -204,7 +207,7 @@ fn render_source(src: &JdbcConn, source_table: &str) -> String {
         driver = hocon_str(jdbc_driver(&src.conn_type)),
         user = user,
         password = password,
-        table_path = hocon_str(source_table),
+        table_path = hocon_str(&table_path),
         sn = hocon_str(source_table_name),
     )
 }
@@ -213,7 +216,9 @@ fn render_sink(sink: &JdbcConn, sink_table: &str, source_table: &str) -> String 
     let url = jdbc_url(sink);
     let user = hocon_str(sink.username.as_deref().unwrap_or(""));
     let password = hocon_str(sink.password.as_deref().unwrap_or(""));
+    // 目标库/表：用户传 `database.table` 则拆分；仅表名时 database 用连接库。
     let (db, table) = split_database_table(sink_table);
+    let db = if db.is_empty() { sink.database.clone().unwrap_or_default() } else { db };
     let source_name = table_short_name(source_table);
     format!(
         "Jdbc {{\n      url = {url}\n      driver = {driver}\n      user = {user}\n      password = {password}\n      source_table_name = {sn}\n      generate_sink_sql = true\n      database = {db}\n      table = {table}\n      schema_save_mode = \"CREATE_SCHEMA_WHEN_NOT_EXIST\"\n      data_save_mode = \"APPEND_DATA\"\n    }}",
@@ -225,6 +230,17 @@ fn render_sink(sink: &JdbcConn, sink_table: &str, source_table: &str) -> String 
         db = hocon_str(&db),
         table = hocon_str(&table),
     )
+}
+
+/// 补全表路径：`db.table` 原样；仅表名 → `conn_db.table`；无连接库则原样（留给引擎/用户）。
+fn qualify_table(conn_db: &str, table: &str) -> String {
+    if table.contains('.') {
+        table.to_string()
+    } else if conn_db.is_empty() {
+        table.to_string()
+    } else {
+        format!("{conn_db}.{table}")
+    }
 }
 
 /// 取表名短名（`db.table` → `table`；无点则原样）。
@@ -307,6 +323,31 @@ mod tests {
         assert!(r.snapshot_hocon.contains("password = \"***\""));
         assert!(!r.snapshot_hocon.contains("p@ss"));
         assert!(r.full_hocon.contains("password"));
+    }
+
+    #[test]
+    fn short_table_auto_qualified_with_conn_db() {
+        // 表映射传短表名时，source table_path 自动补连接库前缀、sink database 补连接库。
+        let src = mysql_conn(); // database = "test"
+        let sink = mysql_conn(); // database = "test"
+        let maps = vec![TableMapping {
+            source_table: "users".into(),
+            sink_table: "users_copy".into(),
+        }];
+        let r = render_full_jdbc(&src, &sink, &maps, &BTreeMap::new()).unwrap();
+        assert!(
+            r.full_hocon.contains("table_path = \"test.users\""),
+            "source table_path 未补库前缀: {}",
+            r.full_hocon
+        );
+        assert!(
+            r.full_hocon.contains("database = \"test\""),
+            "sink database 未补连接库: {}",
+            r.full_hocon
+        );
+        assert!(r.full_hocon.contains("table = \"users_copy\""));
+        // 快照同样含补全后的表路径（不含密码）
+        assert!(r.snapshot_hocon.contains("table_path = \"test.users\""));
     }
 
     #[test]
