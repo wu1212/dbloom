@@ -6,6 +6,9 @@
 # 留档：fail==0 写 scripts/acceptance-results/t3-final.txt
 # ============================================================================
 $ErrorActionPreference='Continue'
+# 【T8】完整输出落档
+$script:transcript = Join-Path $env:TEMP "t3-accept-$(Get-Date -Format yyyyMMddHHmmss).log"
+Start-Transcript -Path $script:transcript -Force | Out-Null
 $base='http://127.0.0.1:8081/api/v1'
 $pass=0;$fail=0
 function Assert([string]$name,[bool]$cond,[string]$detail){
@@ -144,10 +147,13 @@ Assert '匿名查 audit-logs -> 401' (-not $anonAudit.ok -and $anonAudit.status 
 
 Write-Host "`n=== T3 汇总：PASS=$pass FAIL=$fail ==="
 $suffix="$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+# 【T8】完整输出落档
+Stop-Transcript | Out-Null -ErrorAction SilentlyContinue
+$full=Get-Content $script:transcript -Raw -ErrorAction SilentlyContinue
+$out = "=== T3 验收完整输出（$suffix）===`nPASS=$pass FAIL=$fail  exit_code=$fail`n`n$full`n"
 if($fail -eq 0){
-  $out="T3 acceptance: PASS=$pass FAIL=$fail  ($suffix)`n=> 跨用户 GET/PUT/DELETE/TRIGGER/QUERY/EXPORT 全 4xx/隔离；API Key 签发即用/未来不可用/过去不可用/撤销立即失效/停用即时；审计 login/conn_create/apikey_issue/revoke 可查且 admin only。`n"
   if(-not (Test-Path 'scripts/acceptance-results')){New-Item -ItemType Directory -Force -Path 'scripts/acceptance-results'|Out-Null}
   Set-Content -Path 'scripts/acceptance-results/t3-final.txt' -Value $out -Encoding UTF8
-  Write-Host "最终 PASS 已留档 -> scripts/acceptance-results/t3-final.txt"
+  Write-Host ("最终 PASS 完整输出已留档 -> scripts/acceptance-results/t3-final.txt ({0} 字符)" -f $out.Length)
 }
 exit $fail

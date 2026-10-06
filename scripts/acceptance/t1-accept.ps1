@@ -9,6 +9,10 @@
 # ============================================================================
 $ErrorActionPreference = 'Continue'
 
+# 【T8】完整输出留档：整个运行期转 transcript，末尾 Stop-Transcript 落 final.txt
+$script:transcript = Join-Path $env:TEMP "t1-accept-$(Get-Date -Format yyyyMMddHHmmss).log"
+Start-Transcript -Path $script:transcript -Force | Out-Null
+
 $base   = if ($env:DBLOOM_HTTP_PORT) { "http://127.0.0.1:$env:DBLOOM_HTTP_PORT/api/v1" } else { 'http://127.0.0.1:8081/api/v1' }
 $mysql  = '127.0.0.1:3306'
 $muser  = 'root'
@@ -269,16 +273,18 @@ Assert 'F2: 用户 B TRIGGER 任务 → 4xx' (-not $bTrig.ok -and $bTrig.status 
 Assert 'F3: 用户 B STOP 任务 → 4xx' (-not $bStop.ok -and $bStop.status -ge 400 -and $bStop.status -lt 500) "$($bStop.status)"
 Assert 'F4: 用户 B 查 run 历史 → 4xx' (-not $bRuns.ok -and $bRuns.status -ge 400 -and $bRuns.status -lt 500) "$($bRuns.status)"
 Assert 'F5: 用户 B 查连接 → 4xx' (-not $bConn.ok -and $bConn.status -ge 400 -and $bConn.status -lt 500) "$($bConn.status)"
-Assert 'F6: 匿名 GET 任务 → 4xx/401' (-not $anon.ok -and $anon.status -in @(401,403,404)) "$($anon.status)"
+Assert 'F6: 匿名 GET 任务 → 4xx' (-not $anon.ok -and $anon.status -in @(401,403,404)) "$($anon.status)"
 
-# ---------- 汇总 ----------
 Write-Host "`n=== T1 汇总：PASS=$pass FAIL=$fail ==="
 $suffix = "$(Get-Date -Format 'yyyyMMdd-HHmmss')"
-$out = "T1 acceptance: PASS=$pass FAIL=$fail  ($suffix)`n=> 判据 A-G 用例 1-7 详见上方输出`n"
-# 留档：仅当 fail==0 落地最终 PASS 文件（调试失败过程不污染留档目录）
+# 【T8】完整输出落档：Stop-Transcript 后把本次运行的全部输出块（每个判据 PASS/FAIL 行、
+# 数据样本、退出码）写入 final.txt，供审计追溯。
+Stop-Transcript | Out-Null -ErrorAction SilentlyContinue
+$full = Get-Content $script:transcript -Raw -ErrorAction SilentlyContinue
+$out = "=== T1 验收完整输出（$suffix）===`nPASS=$pass FAIL=$fail  exit_code=$fail`n`n$full`n"
 if ($fail -eq 0) {
     if (-not (Test-Path 'scripts/acceptance-results')) { New-Item -ItemType Directory -Force -Path 'scripts/acceptance-results' | Out-Null }
     Set-Content -Path "scripts/acceptance-results/t1-final.txt" -Value $out -Encoding UTF8
-    Write-Host "最终 PASS 已留档 -> scripts/acceptance-results/t1-final.txt"
+    Write-Host ("最终 PASS 完整输出已留档 -> scripts/acceptance-results/t1-final.txt ({0} 字符)" -f $out.Length)
 }
 exit $fail

@@ -1,3 +1,69 @@
-﻿T4 acceptance: PASS=22 FAIL=0  (20261006-215234)
-=> 四格式导出一致、中文正常；路径穿越/绝对路径/URL 编码/空字节全部 4xx 拒绝；无文件被读到路径外。
+﻿=== T4 验收完整输出（20261006-220824）===
+PASS=22 FAIL=0  exit_code=0
+
+**********************
+Windows PowerShell transcript start
+Start time: 20261006220823
+Username: wu\wuzhi
+RunAs User: wu\wuzhi
+Configuration Name: 
+Machine: WU (Microsoft Windows NT 10.0.26200.0)
+Host Application: C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File scripts\acceptance\t4-accept.ps1
+Process ID: 22268
+PSVersion: 5.1.26100.9444
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9444
+BuildVersion: 10.0.26100.9444
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+=== T4 验收开始 2026-10-06 22:08:23 ===
+  [PASS] admin 登录
+wsl : mysql: [Warning] Using a password on the command line interface can be insecure.
+At G:\work\dbloom\scripts\acceptance\t4-accept.ps1:41 char:1
++ wsl docker exec dbloom-mysql mysql -uroot -pdbloom_root_2026 --defaul ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (mysql: [Warning...an be insecure.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+  [PASS] 建导出源连接
+  [PASS] 导出 csv 成功
+  [PASS] 导出 xlsx 成功
+  [PASS] 导出 json 成功
+  [PASS] 导出 sql 成功
+  [PASS] 四格式均有落盘路径
+  [PASS] XLSX 下载 HTTP 200
+  [PASS] CSV 含中文（北京/上海/广州）
+  [PASS] JSON 内容一致（rows id:name）
+  [PASS] SQL 内容一致（VALUES 含 3 行+中文）
+  [PASS] 三格式行数=3（CSV 表头+3 行 / SQL INSERT×3）
+PS>TerminatingError(Invoke-WebRequest): "{"code":42200,"message":"导出下载路径非法","trace_id":""}"
+  [PASS] case2: ../ 相对逃逸 -> 4xx 拒绝
+PS>TerminatingError(Invoke-WebRequest): "{"code":42200,"message":"导出下载路径非法","trace_id":""}"
+  [PASS] case2b: 纯 ../ -> 4xx 拒绝
+PS>TerminatingError(Invoke-WebRequest): "{"code":42200,"message":"导出下载路径非法（不允许绝对路径）","trace_id":""}"
+  [PASS] case3: 绝对 Windows 路径 -> 4xx 拒绝
+PS>TerminatingError(Invoke-WebRequest): "{"code":42200,"message":"导出下载路径非法","trace_id":""}"
+  [PASS] case3b: 绝对转义盘符 -> 4xx 拒绝
+PS>TerminatingError(Invoke-WebRequest): "{"code":42200,"message":"导出下载路径非法（不允许 URL 编码）","trace_id":""}"
+  [PASS] case4: URL 编码 %2e%2e%2f -> 4xx 拒绝
+PS>TerminatingError(Invoke-WebRequest): "{"code":42200,"message":"导出下载路径非法（不允许 URL 编码）","trace_id":""}"
+  [PASS] case4b: 裸 % -> 4xx 拒绝
+PS>TerminatingError(Invoke-WebRequest): "{"code":42200,"message":"导出下载路径非法","trace_id":""}"
+  [PASS] case5: 越界到共享根外 -> 4xx 拒绝
+PS>TerminatingError(Invoke-WebRequest): "{"code":42200,"message":"导出下载路径非法","trace_id":""}"
+  [PASS] case5b: 根相对逃逸 -> 4xx 拒绝
+PS>TerminatingError(Invoke-WebRequest): "{"code":40400,"message":"导出文件不存在","trace_id":""}"
+  [PASS] 不存在文件 -> 4xx
+PS>TerminatingError(Invoke-WebRequest): "{"code":40400,"message":"导出文件不存在","trace_id":""}"
+  [PASS] 空字节/可疑文件名 -> 4xx 或不落盘
+
+=== T4 汇总：PASS=22 FAIL=0 ===
+**********************
+Windows PowerShell transcript end
+End time: 20261006220824
+**********************
+
 

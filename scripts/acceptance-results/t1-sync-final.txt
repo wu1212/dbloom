@@ -1,0 +1,98 @@
+﻿=== T1-SYNC 完整输出（20261006-220807）===
+PASS=15 FAIL=0  exit_code=0
+
+**********************
+Windows PowerShell transcript start
+Start time: 20261006220802
+Username: wu\wuzhi
+RunAs User: wu\wuzhi
+Configuration Name: 
+Machine: WU (Microsoft Windows NT 10.0.26200.0)
+Host Application: C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File scripts\acceptance\t1-sync.ps1
+Process ID: 23092
+PSVersion: 5.1.26100.9444
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9444
+BuildVersion: 10.0.26100.9444
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+=== T1-SYNC 专项（同步成功）验收开始 2026-10-06 22:08:02 ===
+  [PASS] health code=0 且 engine=true（引擎真实在线）
+  [PASS] admin 登录成功
+  [PASS] 创建源连接
+  [PASS] 创建目标连接
+  [INFO] 源连接  id=65  mysql://root@127.0.0.1:3306/dbx_src
+  [INFO] 目标连接 id=66  mysql://root@127.0.0.1:3306/dbx_dst
+cmd : mysql: [Warning] Using a password on the command line interface can be insecure.
+At G:\work\dbloom\scripts\acceptance\t1-sync.ps1:37 char:3
++   cmd /c "wsl docker exec -i dbloom-mysql mysql --default-character-s ...
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (mysql: [Warning...an be insecure.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+cmd : mysql: [Warning] Using a password on the command line interface can be insecure.
+At G:\work\dbloom\scripts\acceptance\t1-sync.ps1:37 char:3
++   cmd /c "wsl docker exec -i dbloom-mysql mysql --default-character-s ...
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (mysql: [Warning...an be insecure.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+cmd : mysql: [Warning] Using a password on the command line interface can be insecure.
+At G:\work\dbloom\scripts\acceptance\t1-sync.ps1:43 char:11
++   $out = (cmd /c "wsl docker exec -i dbloom-mysql mysql -N --default- ...
++           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (mysql: [Warning...an be insecure.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+cmd : mysql: [Warning] Using a password on the command line interface can be insecure.
+At G:\work\dbloom\scripts\acceptance\t1-sync.ps1:43 char:11
++   $out = (cmd /c "wsl docker exec -i dbloom-mysql mysql -N --default- ...
++           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (mysql: [Warning...an be insecure.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+  [PASS] 源表就绪且行数>=2
+  [PASS] 目标表初始为空
+  [INFO] 源表 t_sync_src 行数=6；目标表 t_sync_dst 初始行数=0
+  [PASS] 创建同步任务（返回 taskId）
+  [INFO] taskId=26  源表 t_sync_src -> 目标表 t_sync_dst（库名自动补前缀）
+  [PASS] HOCON 快照可回看（任务详情返回 configHocon）
+  [PASS] HOCON 不含明文密码
+  [INFO] HOCON 快照（726 字符）首 200：env   {     parallelism = 1     job.mode = "BATCH"   }  source {   Jdbc {       url = "jdbc:mysql://127.0.0.1:3306/dbx_src"       driver = "com.mysql.cj.jdbc.Driver"       user = "root"       password
+  [PASS] 任务提交返回 runId（=引擎 jobId）
+  [INFO] submit 返回 runId/jobId = 40
+  [PASS] run 到达终态（轮询成功）
+  [INFO] run 原始 JSON: {"code":0,"data":{"attempt":1,"createdAt":1791295684213,"endTime":1791295686470,"errorMessage":null,"id":40,"idempotencyKey":"t8-sync-20261006220804207","logPath":"logs/tasks/9754b869-32dd-4fda-b7dc-89632129979b.log","ownerUserId":1,"seaTunnelJobId":"1159854465982070785","startTime":1791295684402,"status":"succeeded","taskId":26,"triggerType":"manual","updatedAt":1791295686470}}
+  [PASS] run status = succeeded（实际 succeeded）
+  [INFO] 引擎 job-info: jobId=1159854465982070785 jobStatus=FINISHED errorMsg=
+  [PASS] 引擎 jobStatus = FINISHED（实际 FINISHED）
+cmd : mysql: [Warning] Using a password on the command line interface can be insecure.
+At G:\work\dbloom\scripts\acceptance\t1-sync.ps1:43 char:11
++   $out = (cmd /c "wsl docker exec -i dbloom-mysql mysql -N --default- ...
++           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (mysql: [Warning...an be insecure.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+cmd : mysql: [Warning] Using a password on the command line interface can be insecure.
+At G:\work\dbloom\scripts\acceptance\t1-sync.ps1:43 char:11
++   $out = (cmd /c "wsl docker exec -i dbloom-mysql mysql -N --default- ...
++           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (mysql: [Warning...an be insecure.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+  [INFO] 源一致性串  : 21|24|616C706861|E58C97E4BAAC|6
+  [INFO] 目标一致性串: 21|24|616C706861|E58C97E4BAAC|6
+  [PASS] 数据一致（行数/SUM/中文HEX/COUNT 全等）
+cmd : mysql: [Warning] Using a password on the command line interface can be insecure.
+At G:\work\dbloom\scripts\acceptance\t1-sync.ps1:43 char:11
++   $out = (cmd /c "wsl docker exec -i dbloom-mysql mysql -N --default- ...
++           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (mysql: [Warning...an be insecure.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+  [INFO] 目标表抽样（id:name:score，中文以 HEX 证明一致）= 1:alpha:1.5,2:beta:2.5,3:gamma:3.5,4:delta:4.5,5:epsilon:5.5,6:北京:6.5
+  [PASS] run 日志无 API-06 / Factory initialize failed
+
+=== T1-SYNC 汇总：PASS=15 FAIL=0 ===
+**********************
+Windows PowerShell transcript end
+End time: 20261006220807
+**********************
+
+

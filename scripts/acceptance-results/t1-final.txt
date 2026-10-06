@@ -1,3 +1,130 @@
-﻿T1 acceptance: PASS=38 FAIL=0  (20261006-214957)
-=> 判据 A-G 用例 1-7 详见上方输出
+﻿=== T1 验收完整输出（20261006-221004）===
+PASS=38 FAIL=0  exit_code=0
+
+**********************
+Windows PowerShell transcript start
+Start time: 20261006220936
+Username: wu\wuzhi
+RunAs User: wu\wuzhi
+Configuration Name: 
+Machine: WU (Microsoft Windows NT 10.0.26200.0)
+Host Application: C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File scripts\acceptance\t1-accept.ps1
+Process ID: 17292
+PSVersion: 5.1.26100.9444
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9444
+BuildVersion: 10.0.26100.9444
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+=== T1 验收开始 2026-10-06 22:09:36 ===
+  [PASS] health 接口可达
+  [PASS] admin 登录成功
+  [PASS] 创建源连接
+  [PASS] 创建目标连接
+  [PASS] 连接详情不回传明文密码
+wsl : mysql: [Warning] Using a password on the command line interface can be insecure.
+At G:\work\dbloom\scripts\acceptance\t1-accept.ps1:85 char:1
++ wsl docker exec dbloom-mysql mysql -uroot -pdbloom_root_2026 dbx_src  ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (mysql: [Warning...an be insecure.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+wsl : mysql: [Warning] Using a password on the command line interface can be insecure.
+At G:\work\dbloom\scripts\acceptance\t1-accept.ps1:86 char:1
++ wsl docker exec dbloom-mysql mysql -uroot -pdbloom_root_2026 dbx_dst  ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (mysql: [Warning...an be insecure.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+wsl : mysql: [Warning] Using a password on the command line interface can be insecure.
+At G:\work\dbloom\scripts\acceptance\t1-accept.ps1:88 char:1
++ wsl docker exec dbloom-mysql mysql -uroot -pdbloom_root_2026 dbx_src  ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (mysql: [Warning...an be insecure.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+wsl : mysql: [Warning] Using a password on the command line interface can be insecure.
+At G:\work\dbloom\scripts\acceptance\t1-accept.ps1:89 char:1
++ wsl docker exec dbloom-mysql mysql -uroot -pdbloom_root_2026 dbx_dst  ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (mysql: [Warning...an be insecure.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+  [SETUP] 源表 t1_src(3 行) / 目标表 t1_dst(空) / big_rows(100万行) 已就绪
+  [PASS] 创建同步任务
+  [PASS] B1: HOCON 快照回看（任务详情返回 configHocon）
+  [PASS] B2: HOCON 快照不含明文密码
+  [INFO] HOCON 快照(710 字符) 首 160: env   {     parallelism = 1     job.mode = "BATCH"   }  source {   Jdbc {       url = "jdbc:mysql://127.0.0.1:3306/dbx_src"       driver = "com.mysql.cj.jdbc.Dr
+  [PASS] B3: 快照含 env/source/sink 结构
+  [PASS] A1: trigger 返回 runId
+  [PASS] A2: run 到达终态
+  [PASS] A3: run 状态 = succeeded（实际 succeeded）
+wsl : mysql: [Warning] Using a password on the command line interface can be insecure.
+At G:\work\dbloom\scripts\acceptance\t1-accept.ps1:132 char:12
++     $cnt = wsl docker exec dbloom-mysql mysql -N -uroot -pdbloom_root ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (mysql: [Warning...an be insecure.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+wsl : mysql: [Warning] Using a password on the command line interface can be insecure.
+At G:\work\dbloom\scripts\acceptance\t1-accept.ps1:133 char:15
++ ...   $srcCnt = wsl docker exec dbloom-mysql mysql -N -uroot -pdbloom_roo ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (mysql: [Warning...an be insecure.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+  [PASS] A4: 目标行数=源行数（3/3）
+wsl : mysql: [Warning] Using a password on the command line interface can be insecure.
+At G:\work\dbloom\scripts\acceptance\t1-accept.ps1:136 char:11
++     $s2 = wsl docker exec dbloom-mysql mysql -N -uroot -pdbloom_root_ ...
++           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (mysql: [Warning...an be insecure.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+wsl : mysql: [Warning] Using a password on the command line interface can be insecure.
+At G:\work\dbloom\scripts\acceptance\t1-accept.ps1:137 char:11
++     $d2 = wsl docker exec dbloom-mysql mysql -N -uroot -pdbloom_root_ ...
++           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (mysql: [Warning...an be insecure.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+  [PASS] A5: 抽样值一致（id:name 拼接）
+PS>TerminatingError(Invoke-WebRequest): "{"code":40900,"message":"任务已有运行中实例（run 47），请等待完成或先停止","trace_id":""}"
+  [PASS] 用例7: 同 idempotencyKey 不重复建 run（命中 1 次）
+  [PASS] C1: 必败任务 trigger 成功（返回 runId）
+  [PASS] C2: 必败 run 到达终态
+  [PASS] C3: 必败 run 状态 = failed（实际 failed）
+  [PASS] C4: error_message 非空且含真实原因
+  [PASS] C5: 日志含真实失败信息（error/日志可读）
+  [PASS] E0: 修正目标连接端口为 3306
+  [PASS] E1: retry 返回新 runId（且 attempt+1）
+  [PASS] E2: 新 run 来自 retry（attempt>1，实际 attempt=2）
+  [PASS] E3: retry run 到达终态
+  [PASS] E4: retry run 状态 = succeeded（实际 succeeded）
+PS>TerminatingError(Invoke-WebRequest): "{"code":40900,"message":"仅最近一次失败/停止的 run 可重试（当前状态: succeeded）","trace_id":""}"
+  [PASS] E5: 对已成功 run retry → 409 拒绝
+  [PASS] D1: big run 进入 running 态（可 stop）
+  [PASS] D2: stop 返回 200 + canceled
+  [PASS] D3: stop 后 run 到达终态
+  [PASS] D4: stop 后状态 canceled（实际 canceled）
+  [PASS] D5: 无僵尸 running run
+  [PASS] F0: 用户 B 登录成功
+PS>TerminatingError(Invoke-WebRequest): "{"code":40400,"message":"任务不存在","trace_id":""}"
+PS>TerminatingError(Invoke-WebRequest): "{"code":40400,"message":"任务不存在","trace_id":""}"
+PS>TerminatingError(Invoke-WebRequest): "{"code":40400,"message":"任务不存在","trace_id":""}"
+PS>TerminatingError(Invoke-WebRequest): "{"code":40400,"message":"任务不存在","trace_id":""}"
+PS>TerminatingError(Invoke-WebRequest): "{"code":40400,"message":"连接不存在","trace_id":""}"
+PS>TerminatingError(Invoke-WebRequest): "{"code":40100,"message":"缺少 Authorization 头（Bearer JWT 或 API Key）","trace_id":""}"
+  [PASS] F1: 用户 B GET 任务 → 4xx
+  [PASS] F2: 用户 B TRIGGER 任务 → 4xx
+  [PASS] F3: 用户 B STOP 任务 → 4xx
+  [PASS] F4: 用户 B 查 run 历史 → 4xx
+  [PASS] F5: 用户 B 查连接 → 4xx
+  [PASS] F6: 匿名 GET 任务 → 4xx
+
+=== T1 汇总：PASS=38 FAIL=0 ===
+**********************
+Windows PowerShell transcript end
+End time: 20261006221004
+**********************
+
 

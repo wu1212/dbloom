@@ -1,3 +1,77 @@
-﻿T3 acceptance: PASS=32 FAIL=0  (20261006-214626)
-=> 跨用户 GET/PUT/DELETE/TRIGGER/QUERY/EXPORT 全 4xx/隔离；API Key 签发即用/未来不可用/过去不可用/撤销立即失效/停用即时；审计 login/conn_create/apikey_issue/revoke 可查且 admin only。
+﻿=== T3 验收完整输出（20261006-220817）===
+PASS=32 FAIL=0  exit_code=0
+
+**********************
+Windows PowerShell transcript start
+Start time: 20261006220812
+Username: wu\wuzhi
+RunAs User: wu\wuzhi
+Configuration Name: 
+Machine: WU (Microsoft Windows NT 10.0.26200.0)
+Host Application: C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File scripts\acceptance\t3-accept.ps1
+Process ID: 21120
+PSVersion: 5.1.26100.9444
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9444
+BuildVersion: 10.0.26100.9444
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+=== T3 验收开始 2026-10-06 22:08:12 ===
+  [PASS] admin 登录
+  [PASS] 用户 A/B 建并登录
+  [PASS] A/B token 就绪
+  [PASS] A 建连接
+  [PASS] A 建任务
+  [PASS] B 连接列表不含 A 连接
+PS>TerminatingError(Invoke-WebRequest): "{"code":40400,"message":"连接不存在","trace_id":""}"
+  [PASS] B GET A 连接 -> 4xx
+PS>TerminatingError(Invoke-WebRequest): "{"code":40400,"message":"连接不存在","trace_id":""}"
+  [PASS] B test A 连接 -> 4xx
+PS>TerminatingError(Invoke-WebRequest): "{"code":40400,"message":"连接不存在","trace_id":""}"
+  [PASS] B query A 连接 -> 4xx
+PS>TerminatingError(Invoke-WebRequest): "{"code":40400,"message":"连接不存在","trace_id":""}"
+  [PASS] B export A 连接 -> 4xx
+PS>TerminatingError(Invoke-WebRequest): "{"code":40400,"message":"任务不存在","trace_id":""}"
+  [PASS] B GET A 任务 -> 4xx
+PS>TerminatingError(Invoke-WebRequest): "{"code":40400,"message":"任务不存在","trace_id":""}"
+  [PASS] B TRIGGER A 任务 -> 4xx
+PS>TerminatingError(Invoke-WebRequest): "{"code":40400,"message":"任务不存在","trace_id":""}"
+  [PASS] B PUT A 任务 -> 4xx
+PS>TerminatingError(Invoke-WebRequest): "{"code":40400,"message":"任务不存在","trace_id":""}"
+  [PASS] B DELETE A 任务 -> 4xx
+PS>TerminatingError(Invoke-WebRequest): "{"code":40100,"message":"缺少 Authorization 头（Bearer JWT 或 API Key）","trace_id":""}"
+  [PASS] 匿名 GET A 任务 -> 401
+  [PASS] 签发 key(立即有效)
+  [PASS] 签发后立即可用（key GET A 连接 200）
+PS>TerminatingError(Invoke-WebRequest): "{"code":40300,"message":"API Key 尚未生效","trace_id":""}"
+  [PASS] valid_from=未来 -> 401/403
+PS>TerminatingError(Invoke-WebRequest): "{"code":40300,"message":"API Key 已过期","trace_id":""}"
+  [PASS] valid_until=过去 -> 401/403
+  [PASS] 撤销前可用
+  [PASS] 撤销返回成功
+PS>TerminatingError(Invoke-WebRequest): "{"code":40100,"message":"无效的 API Key","trace_id":""}"
+  [PASS] 撤销后立即失效 -> 401/403（同一秒）
+  [PASS] 停用前可用
+  [PASS] 停用更新成功
+PS>TerminatingError(Invoke-WebRequest): "{"code":40300,"message":"API Key 已停用","trace_id":""}"
+  [PASS] 停用后即时 401/403
+  [PASS] audit: login 可查
+  [PASS] audit: conn_create 可查
+  [PASS] audit: apikey_issue 可查
+  [PASS] audit: apikey_revoke 可查
+  [PASS] audit: 条目含 actor/action 字段
+PS>TerminatingError(Invoke-WebRequest): "{"code":40300,"message":"仅管理员可查看审计日志","trace_id":""}"
+  [PASS] 普通用户 B 查 audit-logs -> 403
+PS>TerminatingError(Invoke-WebRequest): "{"code":40100,"message":"缺少 Authorization 头（Bearer JWT 或 API Key）","trace_id":""}"
+  [PASS] 匿名查 audit-logs -> 401
+
+=== T3 汇总：PASS=32 FAIL=0 ===
+**********************
+Windows PowerShell transcript end
+End time: 20261006220817
+**********************
+
 

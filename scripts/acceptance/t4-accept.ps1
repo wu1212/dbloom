@@ -8,6 +8,9 @@
 # 留档：fail==0 写 scripts/acceptance-results/t4-final.txt
 # ============================================================================
 $ErrorActionPreference = 'Continue'
+# 【T8】完整输出落档
+$script:transcript = Join-Path $env:TEMP "t4-accept-$(Get-Date -Format yyyyMMddHHmmss).log"
+Start-Transcript -Path $script:transcript -Force | Out-Null
 $base   = 'http://127.0.0.1:8081/api/v1'
 $mysql  = '127.0.0.1:3306'; $muser='root'; $mpass='dbloom_root_2026'
 $pass=0; $fail=0
@@ -95,10 +98,13 @@ Assert '空字节/可疑文件名 -> 4xx 或不落盘' (-not $nul.ok -or $nul.st
 
 Write-Host "`n=== T4 汇总：PASS=$pass FAIL=$fail ==="
 $suffix="$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+# 【T8】完整输出落档
+Stop-Transcript | Out-Null -ErrorAction SilentlyContinue
+$full=Get-Content $script:transcript -Raw -ErrorAction SilentlyContinue
+$out = "=== T4 验收完整输出（$suffix）===`nPASS=$pass FAIL=$fail  exit_code=$fail`n`n$full`n"
 if($fail -eq 0){
-  $out = "T4 acceptance: PASS=$pass FAIL=$fail  ($suffix)`n=> 四格式导出一致、中文正常；路径穿越/绝对路径/URL 编码/空字节全部 4xx 拒绝；无文件被读到路径外。`n"
   if(-not (Test-Path 'scripts/acceptance-results')){New-Item -ItemType Directory -Force -Path 'scripts/acceptance-results'|Out-Null}
   Set-Content -Path 'scripts/acceptance-results/t4-final.txt' -Value $out -Encoding UTF8
-  Write-Host "最终 PASS 已留档 -> scripts/acceptance-results/t4-final.txt"
+  Write-Host ("最终 PASS 完整输出已留档 -> scripts/acceptance-results/t4-final.txt ({0} 字符)" -f $out.Length)
 }
 exit $fail
