@@ -582,13 +582,7 @@
                     <scope>provided</scope>
                 </dependency>
 
-                <dependency>
-                    <groupId>org.apache.seatunnel</groupId>
-                    <artifactId>connector-file-obs</artifactId>
-                    <version>${project.version}</version>
-                    <scope>provided</scope>
-                </dependency>
-
+                <!-- dbloom 裁剪：connector-file-obs（华为云 OBS，依赖 hadoop-huaweicloud:3.1.1.29 在仓库缺失，且 OBS 同步场景用不到） -->
                 <dependency>
                     <groupId>org.apache.seatunnel</groupId>
                     <artifactId>connector-paimon</artifactId>
