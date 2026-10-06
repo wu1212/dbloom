@@ -1,0 +1,73 @@
+# ===== 通用 =====
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.iml
+*.log
+logs/
+*.tmp
+.tmp/
+
+# ===== Rust / Cargo (dbx / Tauri) =====
+/target/
+**/target/
+Cargo.lock.orig
+*.rs.bk
+.cargo/
+.cache/
+
+# ===== Tauri =====
+/src-tauri/target/
+/src-tauri/gen/schemas/
+/src-tauri/gen/android/
+/src-tauri/gen/apple/
+
+# ===== Node / pnpm (Tauri 前端) =====
+node_modules/
+**/node_modules/
+dist/
+dist-ssr/
+*.local
+.pnpm-store/
+
+# ===== Java / Maven (seatunnel) =====
+target/
+**/target/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+dependency-reduced-pom.xml
+.flattened-pom.xml
+
+# ===== 环境与凭据 =====
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+!credentials*.example
+secrets/
+local.properties
+
+# ===== 测试与临时产物 =====
+coverage/
+.nyc_output/
+*.lcov
+.hang-detect/
+.hang
+.tmpdir/
+
+# ===== 数据库/数据文件（大文件不入库） =====
+*.sqlite
+*.sqlite3
+*.db
+*.dbf
+data/
+*.csv.bak
