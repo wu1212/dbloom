@@ -43,7 +43,7 @@ docker run --name dbloom-master \
   -e DBLOOM_ROLE=master \
   -e DB_DSN=mysql://dbloom:pass@mysql-host:3306/dbloom \   # 或外部托管 DB
   -e DBLOOM_SECRET_KEY_FILE=/run/secrets/dbloom_secret \
-  -e JWT_SECRET=<随机> \
+  -e DBLOOM_JWT_SECRET=<随机> \
   -v dbloom-data:/dbloom-data \
   你的镜像:dbloom
 # worker（可选，本地单机可只跑 master 自带 worker；worker 不连元数据库）
@@ -70,7 +70,7 @@ services:
       DBLOOM_ROLE: master
       DB_DSN: mysql://dbloom:${DB_PASSWORD}@dbloom-db:3306/dbloom
       DBLOOM_SECRET_KEY_FILE: /run/secrets/dbloom_secret
-      JWT_SECRET: ${JWT_SECRET}
+      DBLOOM_JWT_SECRET: ${DBLOOM_JWT_SECRET}
     volumes:
       - dbloom-data:/dbloom-data
     secrets: [dbloom_secret]
@@ -103,7 +103,7 @@ volumes:
 - `dbloom-master` Deployment（replicas=1，可多副本）：entrypoint 起引擎 master + dbloom-server；Service + Ingress 暴露 8081（HTTPS 由 Ingress 证书终止，D15）。
 - `dbloom-worker` Deployment（replicas=可调 / 配 HPA by CPU）：entrypoint 起引擎 worker。
 - ConfigMap：集群配置（cluster-name 一致、引擎参、checkpoint 路径=/dbloom-data/checkpoint、history-job-expire-minutes）。
-- Secret：`dbloom-secret`（`DBLOOM_SECRET_KEY_FILE` + `JWT_SECRET` + `DB_DSN`，安装时随机生成）。
+- Secret：`dbloom-secret`（`DBLOOM_SECRET_KEY_FILE` + `DBLOOM_JWT_SECRET` + `DB_DSN`，安装时随机生成）。
 - RBAC：只读访问 k8s API（若轮询 Pod/节点用于 worker 状态可视化，可选）。
 
 ```text
@@ -132,9 +132,9 @@ helm install dbloom ./deploy/kubernetes/dbloom \
 | `DBLOOM_ROLE` | 是 | `master` \| `worker` | D1/D11 |
 | `DB_DSN` | 是（master） | 元数据库连接串 `mysql://...` 或 `postgres://...`（D10 v1.1） | D10 |
 | `DBLOOM_SECRET_KEY_FILE` | 是（生产） | 主密钥文件路径 | D 数据保护 |
-| `JWT_SECRET` | 是（生产） | JWT 签名密钥 | D19 |
+| `DBLOOM_JWT_SECRET` | 是（生产） | JWT 签名密钥 | D19 |
 | `DBLOOM_DATA_ROOT` | 否 | 共享挂载根（默认 `/dbloom-data`） | D10 |
-| `DBLOOM_PORT` | 否 | dbloom-server HTTP 端口（默认 8081） | — |
+| `DBLOOM_HTTP_PORT` | 否 | dbloom-server 对外 HTTP 端口（默认 8081） | — |
 | `SEATUNNEL_HTTP_PORT` | 否 | 引擎 REST（默认 8080，仅本地） | — |
 | `RUST_LOG` | 否 | 日志级别 | D22 |
 

@@ -67,7 +67,7 @@
 - `refresh_hash`/`key_hash` 用 SHA-256（高熵随机值，无需慢哈希）；泄露面收敛到「明文仅在创建/签发时返回一次」。
 
 ### 3.4 会话与密钥配置要求
-- 生产环境必须挂载 `DBLOOM_SECRET_KEY_FILE` 与 `JWT_SECRET`（随机生成）；未配置时**拒绝启动**（防开发默认密钥上线）。
+- 生产环境必须挂载 `DBLOOM_SECRET_KEY_FILE` 与 `DBLOOM_JWT_SECRET`（随机生成）；未配置时**拒绝启动**（防开发默认密钥上线）。
 - k8s Secret 用 Helm 生成的随机值 + 尽可能不落 values.yaml。
 
 ---

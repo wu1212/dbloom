@@ -44,19 +44,55 @@
 - [x] GitHub 仓库创建并关联远程
 - [x] 需求收集与架构设计（`docs/architecture.md` v0.7 + 历轮拍板：完整内置引擎 / API Key 不分作用域 / 多节点共享持久化 / 首批 6 库 / 任务管理完整档 / master 同节点 / 仅管理员创建 / API Key 简单生命周期 / 元数据库=外部MySQL+PG ORM / 自定义 jar 按用户隔离）
 - [x] **目标态完整设计**（`docs/design/` v1.1：00-overview 总览与 26 项决策清单 / 01-data-model / 02-api / 03-modules / 04-security / 05-deploy / 06-milestones）
-- [ ] 技术栈落地检查（Rust 工具链 / Node / Java）
-- [ ] 模块骨架（M0：用户体系 + API Key + 多租户隔离）
-- [ ] 首个可运行版本
+- [x] **M0 基础设施底座**：cargo workspace（common/types/storage/iam/server/connector/sync 7 crate）+ IAM（用户/会话/API Key/审计）+ 元数据库 ORM（MySQL）+ axum 服务 + OpenAPI；单测 + 集成实测通过
+- [ ] M1 连接管理（连接类型 manifest + 凭据加密 + 连接 CRUD/test/lock）
+- [ ] M2 前端（apps/web：登录 / 用户 / API Key 管理）
+- [ ] M3 引擎纳入 + 同步任务（最大风险项：engine/ 裁剪 + HOCON 渲染 + REST 提交）
+- [ ] M4+ 数据浏览/编辑 / 调度 / 告警 / 多副本部署 / 审计台
 
 ## 文档
 
 - **目标态设计**：`docs/design/00-overview.md`（含全部决策清单，其余见 `docs/design/` 01–06）
 - **背景与决策记录**：`docs/architecture.md`（v0.7 草案）
 
-## 开发
+## 配置文件（.env）
 
-（构建与运行说明待需求与选型确定后补充）
+dbloom 的配置统一走**环境变量**（docker / compose / k8s 均为 env 注入，清单见 `docs/design/05-deploy.md` §4）。
+为方便本地开发，仓库提供了模板 **`.env.example`**：
+
+```
+cp .env.example .env    # 复制为本地配置，按需修改（.env 已 gitignore，不入库）
+```
+
+`dbloom-server` 启动时自动读取工作目录下 `.env`；**系统已存在的环境变量优先于 `.env`**
+（docker/k8s 直接用 `-e` / Secret / ConfigMap 注入同名变量即可，无需 `.env`）。
+
+关键变量一览（详见 `.env.example` 注释）：
+
+| 变量 | 作用 | 默认 |
+| --- | --- | --- |
+| `DB_DSN` | 元数据库连接串（MySQL/PG，D10） | `mysql://root@localhost:3306/dbloom` |
+| `DBLOOM_JWT_SECRET` | JWT 签名密钥（D19，生产必须注入随机值） | dev 值（启动告警） |
+| `DBLOOM_HTTP_PORT` | dbloom-server 对外 HTTP 端口 | `8081` |
+| `DBLOOM_ROLE` | 角色 `master`/`worker`（D1/D11） | `master` |
+| `DBLOOM_SECRET_KEY_FILE` | 主密钥文件路径（M1 凭据加密，生产必填） | — |
+| `DBLOOM_DATA_ROOT` | 共享数据根（日志/文件/jar/checkpoint，D10） | `/dbloom-data` |
+| `SEATUNNEL_HTTP_PORT` | 引擎 REST（内部，不对外） | `8080` |
+
+## 本地开发
+
+前置：Rust 工具链 + 一个可用的 MySQL（元数据库）。启动：
+
+```
+cp .env.example .env                     # 1. 按需填 DB_DSN（含密码）/ DBLOOM_JWT_SECRET
+# 编辑 .env 里的 DB_DSN 指向你的 MySQL
+cargo run -p dbloom-server                # 2. 启动（自动建库/迁移/种子 admin）
+```
+
+- 启动后自动执行迁移；首启种子内置管理员 `admin`（**随机密码打印在启动日志**，登录后强制修改，D20）。
+- 服务监听 `http://localhost:8081`，OpenAPI 文档：`http://localhost:8081/api/v1/docs`
+- 角色：内置 1 个管理员可管理全部用户，其余普通用户数据相互隔离；管理员为普通用户签发 API Key（D 决策）。
 
 ## License
 
-待定
+Apache-2.0

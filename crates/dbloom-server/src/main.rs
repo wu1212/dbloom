@@ -3,7 +3,8 @@
 //! 环境变量：
 //! - `DB_DSN`            MySQL DSN（如 `mysql://root:pass@localhost:3306/dbloom`）
 //! - `DBLOOM_JWT_SECRET` JWT 签名密钥（生产必须注入；缺省为 dev 值并告警）
-//! - `DBLOOM_HTTP_PORT`  监听端口（默认 8080）
+//! - `DBLOOM_HTTP_PORT`  dbloom-server 对外 HTTP 端口（默认 8081；引擎 REST 8080 仅内部）
+//! - `DBLOOM_ROLE`       角色 master|worker（默认 master；后续 M 阶段使用）
 
 use dbloom_common::time::now_ms;
 use dbloom_iam::{
@@ -75,7 +76,7 @@ async fn run() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let port = env::var("DBLOOM_HTTP_PORT")
         .ok()
         .and_then(|p| p.parse::<u16>().ok())
-        .unwrap_or(8080);
+        .unwrap_or(8081);
     let addr: SocketAddr = format!("0.0.0.0:{port}").parse()?;
     let app = api::build_router(state);
     let listener = tokio::net::TcpListener::bind(addr).await?;
