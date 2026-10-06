@@ -7,7 +7,13 @@ license.workspace = true
 [dependencies]
 dbloom-common = { path = "../dbloom-common" }
 dbloom-types = { path = "../dbloom-types" }
+dbloom-storage = { path = "../dbloom-storage" }
 tokio = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 tracing = { workspace = true }
+reqwest = { version = "0.12", default-features = false, features = ["json", "charset"] }
+chrono = "0.4"
+uuid = { workspace = true }
+
+[dev-dependencies]

@@ -9,12 +9,16 @@ mod api_keys;
 mod audit;
 mod connections;
 mod sessions;
+mod task_runs;
+mod tasks;
 mod users;
 
 pub use api_keys::{ApiKeyDao, ApiKeyRow};
 pub use audit::{AuditDao, AuditRow};
 pub use connections::{ConnectionDao, ConnectionRow, ConnectionUpdate};
 pub use sessions::{SessionDao, SessionRow};
+pub use task_runs::{TaskRunDao, TaskRunRow};
+pub use tasks::{TaskDao, TaskRow, TaskUpdate};
 pub use users::{UserDao, UserRow};
 
 pub const MAX_PAGE_SIZE: i64 = 100;

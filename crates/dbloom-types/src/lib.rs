@@ -10,6 +10,7 @@ pub mod auth;
 pub mod connection;
 pub mod manifest;
 pub mod query;
+pub mod task;
 pub mod user;
 
 pub use apikey::{
@@ -24,5 +25,9 @@ pub use manifest::{Capabilities, ConnTypeManifest, FormField, all_manifests, is_
 pub use query::{
     ColumnItem, ColumnMeta, DatabaseItem, ExportRequest, ExportResult, QueryRequest, QueryResult,
     RowDeleteRequest, RowKey, RowListRequest, RowUpdateRequest, RowWriteResult, TableDdl, TableItem,
+};
+pub use task::{
+    CreateTaskRequest, TableMappingRequest, TaskDto, TaskListResponse, TaskRunDto, TriggerRequest,
+    UpdateTaskRequest,
 };
 pub use user::{UserDto, UserListResponse, UserRole, UserStatus};

@@ -4,6 +4,7 @@
 //! - 受保护路由：其余全部（中间件认证后注入 `AuthCtx`）。
 
 mod apikeys;
+mod audit;
 mod auth;
 mod connections;
 mod data;
@@ -11,6 +12,7 @@ mod export;
 mod health;
 mod meta;
 mod query;
+mod tasks;
 mod users;
 
 use axum::{
@@ -69,6 +71,22 @@ pub fn build_router(state: Arc<AppState>) -> Router {
         .route("/data/rows/delete", post(data::delete))
         .route("/export", post(export::create))
         .route("/export/download", get(export::download))
+        // 同步任务（M3 / D4 / D5；02-api §2.6）
+        .route("/tasks", get(tasks::list).post(tasks::create))
+        .route(
+            "/tasks/:id",
+            get(tasks::detail).put(tasks::update).delete(tasks::delete),
+        )
+        .route("/tasks/:id/enable", post(tasks::set_enabled))
+        .route("/tasks/:id/trigger", post(tasks::trigger))
+        .route("/tasks/:id/stop", post(tasks::stop))
+        .route("/tasks/:id/retry", post(tasks::retry))
+        .route("/tasks/:id/runs", get(tasks::runs))
+        .route("/tasks/:id/dag", get(tasks::dag))
+        .route("/runs/:runId", get(tasks::run_detail))
+        .route("/runs/:runId/logs", get(tasks::run_logs))
+        // 审计（02-api §2.8，admin only）
+        .route("/audit-logs", get(audit::list))
         .layer(middleware::from_fn_with_state(
             state.clone(),
             crate::auth::auth_middleware,

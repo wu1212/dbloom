@@ -74,10 +74,16 @@ async fn run() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     ));
 
     let conn_dao = dbloom_storage::dao::ConnectionDao::new(pool.clone());
+    let task_dao = dbloom_storage::dao::TaskDao::new(pool.clone());
+    let run_dao = dbloom_storage::dao::TaskRunDao::new(pool.clone());
+    let engine = std::sync::Arc::new(dbloom_sync::EngineClient::from_env());
     let state = Arc::new(AppState {
         iam,
         pool,
         connections: conn_dao,
+        tasks: task_dao,
+        runs: run_dao,
+        engine,
         crypto,
     });
 
