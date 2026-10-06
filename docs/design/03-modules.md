@@ -154,7 +154,7 @@ apps/web/
 
 ## 5. seatunnel/ 源码复用与裁剪范围（D2/D24a：复用为主，用不到就删、不合适改源码）
 
-纳入（复用 `G:\work\seatunnel` 源码，按需裁剪）：
+纳入（仓内 `seatunnel/`，源：`G:\work\seatunnel` 2.3.12 定制版，按需裁剪）：
 - `seatunnel-api`、`seatunnel-engine/engine-core`（master/worker 运行时）、`engine-server`（REST/web）、`engine-client`、`engine-common`、`engine-storage`（checkpoint）。
 - 连接器（两种取向按交集裁）：
   - 客户端/同步首期 6 库：mysql / postgres / sqlserver（JDBC）、mongodb / redis / elasticsearch 对应 connector；

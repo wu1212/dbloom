@@ -52,7 +52,7 @@
 
 ## 3. 参考项目调研结论（架构来源依据）
 
-### 3.1 SeaTunnel Engine（`G:\work\seatunnel`）—— 数据同步引擎
+### 3.1 SeaTunnel Engine（`seatunnel/`，源：`G:\work\seatunnel`）—— 数据同步引擎
 
 | 项 | 结论（来源文件） |
 | --- | --- |
@@ -65,7 +65,7 @@
 | k8s | 自带 Helm chart：`deployment-seatunnel-master` / `-worker` + configmap + headless service + ingress + rbac，master/worker replicas 可配（`deploy/kubernetes/seatunnel/`） |
 | 模块 | `seatunnel-engine/`：engine-core / engine-server / engine-client / engine-common / engine-storage / engine-ui |
 
-### 3.2 dbx（`G:\work\dbx`）—— 数据库客户端
+### 3.2 dbx（`dbx/`，源：`G:\work\dbx`）—— 数据库客户端
 
 | 项 | 结论（来源文件） |
 | --- | --- |
@@ -146,7 +146,7 @@
 ### 4.5 引擎融合方式：完整内置引擎（✅ 已拍板 2026-10-06）
 
 - **决策**：SeaTunnel Engine **不外部依赖、不采用独立官方发行版**，而是把引擎源码工程（本地
-  `G:\work\seatunnel` 2.3.12 定制版）纳入 dbloom 仓库统一维护，构建出**统一镜像**——一个镜像内同时
+  定制版，已复制进仓 `seatunnel/`，源：`G:\work\seatunnel` 2.3.12）纳入 dbloom 仓库统一维护，构建出**统一镜像**——一个镜像内同时
   包含 Rust 控制面与 JVM 引擎。
 - **进程模型**：控制面与引擎为**同镜像双进程**（JVM 无法被 Rust 进程真内嵌），由镜像 entrypoint /
   进程管理器按角色拉起；两者通过本地 REST（引擎 8080）+ 共享卷交换数据。
@@ -234,7 +234,7 @@ dbloom/
 ├─ apps/
 │  └─ web/                      # React + Vite 前端（连接配置/SQL 工作台/任务管理）
 ├─ seatunnel/                   # SeaTunnel Engine（Java/Maven，本地 2.3.12 定制版）——内嵌执行引擎，纳入本仓统一维护
-│  ├─ seatunnel-engine/         #   引擎本体（源：G:\work\seatunnel 的 seatunnel-engine）
+│  ├─ seatunnel-engine/         #   引擎本体（仓内副本，上游 G:\work\seatunnel 的 seatunnel-engine）
 │  ├─ seatunnel-connectors-v2/  #   连接器（首批范围见待确认）
 │  └─ pom.xml                   #   版本锁定 2.3.12 定制分支
 ├─ crates/
@@ -327,7 +327,7 @@ volumes:
 4. ~~部署存储选型~~ ✅ 已拍板（2026-10-06，v0.7 重置）：元数据用**外部关系数据库（默认 MySQL，PG 可切）+ ORM 层**；
    **多节点共享文件卷**只放非结构化数据（日志 / 上传下载文件 / 自定义 jar / checkpoint，2026-10-06）。
    ~~master 与 dbloom-server 是否同 node~~ ✅ 已拍板（2026-10-06）：**同节点**。
-5. ✅ SeaTunnel 版本与融合：**完整内置**，跟随本地 `G:\work\seatunnel` 2.3.12 定制分支。
+5. ✅ SeaTunnel 版本与融合：**完整内置**，跟随仓内 `seatunnel/`（上游 `G:\work\seatunnel`）2.3.12 定制分支。
 6. ~~API Key 权限粒度~~ ✅ 已拍板（2026-10-06）：**完整开放、不分作用域**——Key 是纯身份凭证，
    鉴权通过即拥有所绑用户全部能力。
 7. ~~API Key 生命周期策略~~ ✅ 已拍板（2026-10-06）：**简单策略**——到期即失效、撤销立即全局生效、

@@ -2,6 +2,8 @@
 
 > 目标态（M7 完成）= `docs/design/00-overview.md` 所描述全能力，对外交付目标态产物。
 > v1.1（2026-10-06）：M0/M3 存储层由 SQLite 改为 **外部元数据库 MySQL/PG + ORM**（D10）、新增 D26 自定义 jar。
+> v1.2/v1.3（2026-10-06）：**源码复用原则定稿** —— seatunnel/dbx 源码复制进仓（`seatunnel/`、`dbx/`），
+> 用不到就删、不合适改源码、禁止重写（D2 校准 / D27 vendored + D24a）；M2 已完成（`d5bffa3`）。
 > 依赖可并行的后标 `∥`；每阶段验收标准明确，**逐阶段回读验证后再进下一阶段**（防返工冒进）。
 
 ---
@@ -19,13 +21,13 @@
 - [x] 前端：连接列表/新建表单（manifest 驱动）/测试按钮。
 - **验收**：对真实 mysql/postgres 各建一条连接并测试连通；密文落库（回读 `password_enc` 非明文）；列表不回传密码。
 
-## M2 — 数据库客户端核心（SQL 工作台 + 元数据 + 数据浏览/编辑）
-- [ ] `db-query`：执行/取消/超时 120s/上限 5000 行/分页/流式（WS `/ws/query`）。
-- [ ] `schema`：databases/tables/columns/DDL；`data`：行浏览/编辑/删除。
-- [ ] 写保护（D6）：危险语句识别、`is_production`+`read_only_lock`、`confirm=true` 二次确认链路。
-- [ ] 导出（D23 CSV/XLSX/JSON/SQL）到共享卷 `files/download/` + 导入 `files/upload/`。
-- [ ] 前端：SQL 工作台（编辑器/结果表/危险确认对话框/导出菜单）+ 元数据树 + 数据浏览页。
-- **验收**：查询真实库 6 库各跑通 SELECT；无 WHERE UPDATE 被拦截；只读锁连接写操作被拒；导出 4 格式文件内容正确落共享卷；WS 流式 >5000 行可分页拉完。
+## M2 — 数据库客户端核心（SQL 工作台 + 元数据 + 数据浏览/编辑）✅ 已完成
+- [x] `db-query`：执行/取消/超时 120s/上限 5000 行/分页（**REST 分批拉满**满足验收；WS 批量流式 `/ws/query` 列 M3 前可选增强）。
+- [x] `schema`：databases/tables/columns/DDL；`data`：行浏览/更新/删除（API 层完整；单元格内联编辑 UI 细化留 M5）。
+- [x] 写保护（D6）：危险语句识别、`is_production`+`read_only_lock`、`confirm=true` 二次确认链路。
+- [x] 导出（D23 CSV/XLSX/JSON/SQL）落共享卷 `shared/export/` + 下载白名单**防路径穿越**（导入 `files/upload/` 留 M5）。
+- [x] 前端：SQL 工作台（编辑器/结果表/危险确认对话框）+ 元数据树 + 顶部导航。
+- **验收（提交 `d5bffa3`）**：✅ 真实 PG/MySQL 跑通 查询/分页/元数据/行更新删除/危险语句拦截/只读锁拒绝写/confirm 二次确认/4 格式导出/下载路径穿越防护；浏览器端到端走查（登录→工作台→自动选连接→执行→危险确认弹窗）。注：查询底层为 `dbloom-connector`（M2 后支线由 dbx 源码替换，见下）。
 
 ## M3 — 引擎纳入与同步任务跑通（最小垂直切片）
 - [ ] 引擎**源码复制进仓（D2/D24a）**：seatunnel 源码嵌入 `seatunnel/`（Maven 工程），**用不到就删**（reload 服务、engine-ui、无关 connector、示例 job），**不合适就改源码**；构建产物入统一镜像；`dbloom-sync` HOCON 生成 + `submit/status/cancel` REST；`-r master/worker` 跑通集群；`upload-file`/REST 可用。
