@@ -309,6 +309,32 @@ impl Iam {
         Ok(())
     }
 
+    // ---------------- 通用审计（D21） ----------------
+
+    /// 记录一条审计（供各业务 handler 复用；actor_type: 'user' | 'api_key'）。
+    pub async fn record_audit(
+        &self,
+        actor_user_id: Option<i64>,
+        actor_type: &str,
+        action: &str,
+        resource_type: Option<&str>,
+        resource_id: Option<&str>,
+        detail: Option<serde_json::Value>,
+        ip: Option<&str>,
+    ) -> Result<()> {
+        audit::record_audit(
+            &self.audit,
+            actor_user_id,
+            actor_type,
+            action,
+            resource_type,
+            resource_id,
+            detail,
+            ip,
+        )
+        .await
+    }
+
     // ---------------- API Key（admin 域，D9） ----------------
 
     pub async fn issue_api_key(

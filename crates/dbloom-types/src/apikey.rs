@@ -30,6 +30,7 @@ impl ApiKeyStatus {
 
 /// API Key 摘要（永不回传明文密钥；明文仅在签发的 CreateApiKeyResponse.secret 出现一次）。
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct ApiKeyDto {
     pub id: i64,
     pub user_id: i64,
@@ -46,6 +47,7 @@ pub struct ApiKeyDto {
 
 /// 签发 Key 请求（HTTP 体直接用 user_id 指明归属；或走 path）。
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateApiKeyRequest {
     pub name: String,
     #[serde(default)]
@@ -56,6 +58,7 @@ pub struct CreateApiKeyRequest {
 
 /// 签发响应：`secret` 为明文，**仅此一次返回**。
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateApiKeyResponse {
     pub key: ApiKeyDto,
     pub secret: String,
@@ -63,6 +66,7 @@ pub struct CreateApiKeyResponse {
 
 /// 更新 Key（name / status / 生效 / 失效时间）。
 #[derive(Debug, Clone, Default, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdateApiKeyRequest {
     #[serde(default)]
     pub name: Option<String>,

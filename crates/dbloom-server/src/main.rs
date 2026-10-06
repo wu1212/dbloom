@@ -62,6 +62,9 @@ async fn run() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     ensure_admin(&users).await?;
 
+    // ---- 连接凭据主密钥（04-security §3.1；生产必须配置，开发缺省派生） ----
+    let crypto = Arc::new(dbloom_common::CryptoProvider::from_env(&jwt_secret)?);
+
     let iam = Arc::new(Iam::new(
         UserDao::new(pool.clone()),
         sessions,
@@ -70,7 +73,13 @@ async fn run() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         Config { jwt_secret },
     ));
 
-    let state = Arc::new(AppState { iam, pool });
+    let conn_dao = dbloom_storage::dao::ConnectionDao::new(pool.clone());
+    let state = Arc::new(AppState {
+        iam,
+        pool,
+        connections: conn_dao,
+        crypto,
+    });
 
     // ---- 启动 HTTP ----
     let port = env::var("DBLOOM_HTTP_PORT")
@@ -85,24 +94,54 @@ async fn run() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     Ok(())
 }
 
-/// 幂等确保内置 admin 存在（随机密码打印日志 + 首登强改，D20）。
+/// 幂等确保内置 admin 存在（D20）。
+/// `DBLOOM_SEED_ADMIN_PASSWORD`（可选，初始化/部署用）：首次创建时用它代替随机密码；
+/// 之后每次启动若仍设置，则把 admin 密码**重置为该值**（便于开发/演示找回入口；
+/// 生产环境应登录后改密并移除该变量——日志会告警）。
 async fn ensure_admin(users: &UserDao) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let seed = std::env::var("DBLOOM_SEED_ADMIN_PASSWORD")
+        .ok()
+        .filter(|p| !p.is_empty());
+
     match users.get_by_username("admin").await {
-        Ok(_) => {
-            tracing::info!("内置管理员 admin 已存在");
+        Ok(row) => {
+            if let Some(pw) = seed {
+                if pw.chars().count() < 8 {
+                    return Err("DBLOOM_SEED_ADMIN_PASSWORD 过短（至少 8 位）".into());
+                }
+                let hash = hash_password(&pw)?;
+                users.set_password(row.id, &hash, false, now_ms()).await?;
+                tracing::warn!(
+                    "DBLOOM_SEED_ADMIN_PASSWORD 生效：admin 密码已重置为该值（请登录后妥善保管；生产请移除该环境变量）"
+                );
+            } else {
+                tracing::info!("内置管理员 admin 已存在");
+            }
             Ok(())
         }
         Err(_) => {
-            let pw = generate_random_password(16);
+            let (pw, from_seed): (String, bool) = match seed {
+                Some(p) => {
+                    if p.chars().count() < 8 {
+                        return Err("DBLOOM_SEED_ADMIN_PASSWORD 过短（至少 8 位）".into());
+                    }
+                    (p, true)
+                }
+                None => (generate_random_password(16), false),
+            };
             let hash = hash_password(&pw)?;
             let created_at = now_ms();
             users
                 .create("admin", &hash, UserRole::Admin.as_str(), None, created_at)
                 .await?;
-            tracing::warn!(
-                "已创建内置管理员 admin —— 初始密码（仅此一次打印，请即刻记录并登录后修改，D20）: {pw}"
-            );
-            tracing::info!("admin must_change_password=1（首登强制改密）");
+            if from_seed {
+                tracing::warn!("已创建内置管理员 admin（DBLOOM_SEED_ADMIN_PASSWORD 指定，请登录后修改）");
+            } else {
+                tracing::warn!(
+                    "已创建内置管理员 admin —— 初始密码（仅此一次打印，请即刻记录并登录后修改，D20）: {pw}"
+                );
+            }
+            tracing::info!("admin must_change_password=?（详见上文；D20 首登强改）");
             Ok(())
         }
     }

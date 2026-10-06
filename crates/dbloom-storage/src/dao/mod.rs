@@ -7,11 +7,13 @@
 
 mod api_keys;
 mod audit;
+mod connections;
 mod sessions;
 mod users;
 
 pub use api_keys::{ApiKeyDao, ApiKeyRow};
 pub use audit::{AuditDao, AuditRow};
+pub use connections::{ConnectionDao, ConnectionRow, ConnectionUpdate};
 pub use sessions::{SessionDao, SessionRow};
 pub use users::{UserDao, UserRow};
 

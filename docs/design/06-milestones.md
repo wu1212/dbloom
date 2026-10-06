@@ -6,18 +6,17 @@
 
 ---
 
-## M0 — 基础设施底座（Rust workspace + 元数据库 + IAM 骨架）
-- [ ] `cargo workspace` 8 个 crate 空壳 + `apps/web` 脚手架（Vite + antd）。
-- [ ] `dbloom-storage`：**ORM（SeaORM/sqlx）连接 MySQL**（PG 可切，D10）、连接池、迁移清单 v1、`TenantScope` 租户过滤封装；本地开发用 docker 起 MySQL 8。
-- [ ] `dbloom-iam`：schema（users/sessions/api_keys/audit_logs）→ 内置 admin 种子（随机密码+强改 D20）→ argon2 / JWT / refresh / 登录锁定（D19）→ 用户 CRUD + 强制重置密码（D8/D20）→ API Key 签发/校验/生命周期（D9）→ 审计写入（D21）。
-- [ ] `dbloom-server`：axum + auth 中间件 + OpenAPI(utoipa) + `health` + `auth/*` + `users/*` + `api-keys/*` 路由（`02-api.md` §2.1–2.3）。
-- **验收**：单测覆盖用户/Key/租户过滤/越权 404；`cargo test` 绿；`curl` 跑通 login/refresh/create-user/issue-key/用 Key 调接口；越权用例 404；连接并迁移真实 MySQL。
+## M0 — 基础设施底座（Rust workspace + 元数据库 + IAM 骨架）✅ 已完成
+- [x] `cargo workspace` 8 个 crate 空壳 + `apps/web` 脚手架（Vite + antd）。
+- [x] `dbloom-storage`：**ORM（SeaORM/sqlx）连接 MySQL**（PG 可切，D10）、连接池、迁移清单 v1、`TenantScope` 租户过滤封装；本地开发用 docker 起 MySQL 8。
+- [x] `dbloom-iam`：schema（users/sessions/api_keys/audit_logs）→ 内置 admin 种子（随机密码+强改 D20）→ argon2 / JWT / refresh / 登录锁定（D19）→ 用户 CRUD + 强制重置密码（D8/D20）→ API Key 签发/校验/生命周期（D9）→ 审计写入（D21）。
+- [x] `dbloom-server`：axum + auth 中间件 + OpenAPI(utoipa) + `health` + `auth/*` + `users/*` + `api-keys/*` 路由（`02-api.md` §2.1–2.3）。
 
-## M1 — 连接管理（客户端第一块）
-- [ ] `dbloom-types`：连接类型 manifest（首批 6 库，`03-modules.md` §3）。
-- [ ] `dbloom-connector`：连接池 + 驱动 trait + 连接测试（D17 服务端发起）。
-- [ ] `connections` schema（含加密字段）→ CRUD + test + lock/unlock 路由 + 租户过滤。
-- [ ] 前端：连接列表/新建表单（manifest 驱动）/测试按钮。
+## M1 — 连接管理（客户端第一块）✅ 已完成
+- [x] `dbloom-types`：连接类型 manifest（首批 6 库，`03-modules.md` §3）。
+- [x] `dbloom-connector`：连接池 + 驱动 trait + 连接测试（D17 服务端发起）。
+- [x] `connections` schema（含加密字段）→ CRUD + test + lock/unlock 路由 + 租户过滤。
+- [x] 前端：连接列表/新建表单（manifest 驱动）/测试按钮。
 - **验收**：对真实 mysql/postgres 各建一条连接并测试连通；密文落库（回读 `password_enc` 非明文）；列表不回传密码。
 
 ## M2 — 数据库客户端核心（SQL 工作台 + 元数据 + 数据浏览/编辑）

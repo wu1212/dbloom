@@ -5,12 +5,19 @@
 //!
 //! 连接类型 manifest 见 `docs/design/03-modules.md` §3（M1 落地）。
 
-pub mod auth;
-pub mod user;
 pub mod apikey;
+pub mod auth;
+pub mod connection;
+pub mod manifest;
+pub mod user;
 
-pub use user::{UserDto, UserListResponse, UserRole, UserStatus};
-pub use auth::{LoginRequest, LoginResponse, RefreshRequest, RefreshResponse, ChangePasswordRequest};
 pub use apikey::{
     ApiKeyDto, ApiKeyStatus, CreateApiKeyRequest, CreateApiKeyResponse, UpdateApiKeyRequest,
 };
+pub use auth::{ChangePasswordRequest, LoginRequest, LoginResponse, RefreshRequest, RefreshResponse};
+pub use connection::{
+    ConnectionDto, ConnectionListResponse, CreateConnectionRequest, TestConnectionResponse,
+    UpdateConnectionRequest,
+};
+pub use manifest::{Capabilities, ConnTypeManifest, FormField, all_manifests, is_supported_type, manifest_by_name};
+pub use user::{UserDto, UserListResponse, UserRole, UserStatus};

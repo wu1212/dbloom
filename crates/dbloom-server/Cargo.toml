@@ -25,6 +25,7 @@ dbloom-common = { path = "../dbloom-common" }
 dbloom-types = { path = "../dbloom-types" }
 dbloom-storage = { path = "../dbloom-storage" }
 dbloom-iam = { path = "../dbloom-iam" }
+dbloom-connector = { path = "../dbloom-connector" }
 
 [dev-dependencies]
 hyper = { version = "1", features = ["full"] }

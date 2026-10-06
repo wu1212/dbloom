@@ -58,6 +58,7 @@ impl UserStatus {
 
 /// 用户 DTO（不包含任何密码相关字段）。
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct UserDto {
     pub id: i64,
     pub username: String,
@@ -71,6 +72,7 @@ pub struct UserDto {
 
 /// 用户列表分页响应。
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct UserListResponse {
     pub total: i64,
     pub items: Vec<UserDto>,

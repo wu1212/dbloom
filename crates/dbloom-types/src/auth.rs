@@ -13,7 +13,9 @@ pub struct LoginRequest {
 
 /// 登录响应：access JWT（2h）+ refresh token（7d）+ 用户信息。
 /// 前端存内存 + refresh 落 HttpOnly cookie / localStorage（`04-security.md` §2）。
+/// 统一 camelCase（与全部 /api/v1 DTO 一致，前端 OpenAPI 生成对齐）。
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct LoginResponse {
     pub access_token: String,
     pub refresh_token: String,
@@ -22,12 +24,14 @@ pub struct LoginResponse {
 
 /// 刷新 access token 请求。
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct RefreshRequest {
     pub refresh_token: String,
 }
 
 /// 刷新响应（仅新的 access token）。
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct RefreshResponse {
     pub access_token: String,
 }

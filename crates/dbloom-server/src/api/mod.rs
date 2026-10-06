@@ -5,6 +5,7 @@
 
 mod apikeys;
 mod auth;
+mod connections;
 mod health;
 mod users;
 
@@ -38,6 +39,21 @@ pub fn build_router(state: Arc<AppState>) -> Router {
             "/api-keys/:key_id",
             axum::routing::put(apikeys::update).delete(apikeys::revoke),
         )
+        // connections（D6/D7/D17；先注册静态段 /types 再注册参数段）
+        .route("/connections/types", get(connections::types))
+        .route(
+            "/connections",
+            get(connections::list).post(connections::create),
+        )
+        .route(
+            "/connections/:id",
+            get(connections::detail)
+                .put(connections::update)
+                .delete(connections::delete),
+        )
+        .route("/connections/:id/test", post(connections::test))
+        .route("/connections/:id/lock", post(connections::lock))
+        .route("/connections/:id/unlock", post(connections::unlock))
         .layer(middleware::from_fn_with_state(
             state.clone(),
             crate::auth::auth_middleware,
